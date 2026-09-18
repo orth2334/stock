@@ -1020,10 +1020,21 @@
 
         <!-- 4. 장전 실전 대응 전략 포인트 -->
         <section class="glass-card rounded-[22px] p-5 sm:p-6 flex flex-col gap-3">
-          <h3 class="text-base font-semibold text-brand-body tracking-tight">
-            장전 체크포인트
-          </h3>
-          <ul id="detailCheckpointsList" class="flex flex-col gap-2 text-xs text-[#3E5244] leading-relaxed">
+          <div class="flex items-center justify-between border-b border-[#D8E3D7] pb-2.5">
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-semibold text-brand-body tracking-tight">
+                장전 체크포인트
+              </h3>
+              <span id="checkpointDateBadge" class="font-en text-[11px] font-semibold text-brand-txt bg-[#E6EFE7] px-2 py-0.5 rounded-full border border-[#D5E1D4] whitespace-nowrap">
+                09.15 (화) 기준
+              </span>
+            </div>
+            <span class="text-[11px] text-brand-muted font-medium flex items-center gap-1.5 whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#2F7347] status-pulse"></span>
+              <span>08:30 업데이트</span>
+            </span>
+          </div>
+          <ul id="detailCheckpointsList" class="flex flex-col gap-2 text-xs text-[#3E5244] leading-relaxed pt-0.5">
             <!-- 동적 렌더링 -->
           </ul>
         </section>
