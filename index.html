@@ -1,0 +1,2005 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>오늘의 코스피 흐름</title>
+  
+  <!-- Fonts: Montserrat & Pretendard -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              txt: '#355240',       // Tomoro Sugawara signature forest green
+              dark: '#234E35',
+              slate: '#4E5752',
+              body: '#17261D',      // Clean ink black
+              muted: '#687D6F',     // Muted sage green
+              border: 'rgba(124, 144, 131, 0.24)', // Subtle hairline border
+              danger: '#A63F32',    // Subtle terracotta red
+              dangerBg: '#FBF2F0',
+              up: '#2F7347',
+              upBg: '#EEF6F0'
+            }
+          },
+          fontFamily: {
+            en: ['Montserrat', 'sans-serif'],
+            sans: ['Pretendard', '-apple-system', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --s-txt: #355240;
+      --s-body: #17261D;
+      --s-bdr: rgba(124, 144, 131, 0.22);
+      --s-grd: linear-gradient(135deg, #234E35 0%, #304E3C 55%, #4E5752 100%);
+    }
+
+    /* Ambient Mesh Background */
+    body {
+      min-height: 100vh;
+      color: var(--s-body);
+      font-family: 'Pretendard', -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background-color: #BAC1B3;
+      background-image: 
+        radial-gradient(ellipse at 15% 12%, #D9DECF 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 8%, #B5C3B6 0%, transparent 48%),
+        radial-gradient(ellipse at 10% 50%, #D1DBCD 0%, transparent 52%),
+        radial-gradient(ellipse at 90% 45%, #B8C4B6 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 75%, #ECE6D3 0%, transparent 55%),
+        radial-gradient(ellipse at 15% 90%, #E3E5D5 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 92%, #BAC6B8 0%, transparent 48%);
+      background-attachment: fixed;
+      position: relative;
+    }
+
+    /* Tactile Paper Grain Noise Layer */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.35;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    /* Frosted Glass Cards */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      box-shadow: 0 4px 20px -2px rgba(35, 78, 53, 0.04);
+    }
+
+    .glass-card-subtle {
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    .studio-grd {
+      background: var(--s-grd);
+    }
+
+    .btn-press {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-press:active {
+      transform: scale(0.97);
+    }
+
+    .card-hover {
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .card-hover:hover {
+      border-color: rgba(53, 82, 64, 0.35);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px -6px rgba(23, 38, 29, 0.06);
+    }
+
+    @keyframes subtle-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+    .status-pulse {
+      animation: subtle-pulse 2s infinite ease-in-out;
+    }
+
+    /* Tab Page Animations */
+    .tab-page {
+      display: none;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .tab-page.active {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Fixed Bottom Navigation Styling */
+    .bottom-nav {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(124, 144, 131, 0.24);
+      box-shadow: 0 -4px 24px rgba(23, 38, 29, 0.05);
+    }
+
+    /* Draggable Card News Deck */
+    .card-news-deck {
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    .card-news-deck.is-dragging {
+      cursor: grabbing !important;
+      scroll-snap-type: none !important;
+      scroll-behavior: auto !important;
+    }
+    .card-news-deck * {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-user-drag: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex justify-center py-6 px-4 sm:px-6 pb-28">
+
+  <!-- Main App Shell -->
+  <div class="w-full max-w-[580px] flex flex-col gap-6 relative z-10">
+
+    <!-- 0. 글로벌 고정 헤더 -->
+    <header class="pt-2 pb-3 flex flex-col gap-3 border-b border-[#C7D3C6]">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-brand-txt status-pulse"></span>
+          <span class="font-en text-[11px] font-semibold tracking-[0.18em] uppercase text-brand-muted">
+            KOSPI FLOW
+          </span>
+        </div>
+        
+        <div class="flex items-center gap-2 bg-[#E1E9DF] border border-[#CBD7C8] px-3 py-1 rounded-full shadow-sm">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#2F7347]"></span>
+          <span class="text-xs font-medium text-brand-txt">
+            09.15 화 · <span class="font-semibold">개장 전</span>
+          </span>
+        </div>
+      </div>
+
+      <h1 id="pageTitle" class="text-2xl sm:text-[26px] font-semibold tracking-tight text-brand-body">
+        오늘의 코스피 흐름
+      </h1>
+    </header>
+
+    <!-- ============================================== -->
+    <!-- TAB 1: 오늘의 흐름 (홈) -->
+    <!-- ============================================== -->
+    <div id="tab-home" class="tab-page active flex-col gap-6">
+
+      <!-- 어제 결과 스트립 -->
+      <div class="glass-card rounded-2xl p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="w-2 h-2 rounded-full bg-brand-muted"></span>
+          <span class="text-xs text-brand-muted">어제 코스피</span>
+          <span class="text-xs sm:text-sm font-semibold text-brand-body">하락 마감</span>
+        </div>
+        <div class="flex items-center gap-1.5 font-en text-xs">
+          <span class="font-semibold text-brand-body">2,570.45</span>
+          <span class="text-brand-danger font-medium">(-3.26%)</span>
+        </div>
+      </div>
+
+      <!-- 오늘 핵심 결론 (히어로 카드) -->
+      <section class="studio-grd text-white rounded-[24px] p-6 sm:p-7 shadow-[0_16px_36px_-8px_rgba(35,78,53,0.28)] relative overflow-hidden flex flex-col gap-5 border border-white/20">
+        <div class="flex items-center justify-between border-b border-white/15 pb-3.5">
+          <span class="text-xs font-medium text-white/85 tracking-wide">
+            오늘의 시장 결론
+          </span>
+          <span class="font-en text-xs tracking-wider text-white/80 font-semibold">
+            하락 확률 85%
+          </span>
+        </div>
+
+        <div>
+          <h2 class="text-2xl sm:text-[28px] font-medium leading-[1.35] tracking-tight">
+            오늘은 지수가 
+            <span class="font-bold text-[#FFB8AD] underline decoration-[#FF8E7C]/60 underline-offset-8">
+              하락 출발
+            </span>할 가능성이 큽니다.
+          </h2>
+        </div>
+
+        <!-- 예상 수치 카드 -->
+        <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/15 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <div class="flex flex-col gap-0.5">
+            <span class="text-[11px] text-white/70">
+              예상 지수 범위
+            </span>
+            <span class="font-en text-2xl sm:text-[26px] font-bold tracking-tight text-white">
+              2,508 ~ 2,562
+            </span>
+          </div>
+
+          <div class="h-px sm:h-10 w-full sm:w-px bg-white/15"></div>
+
+          <div class="flex flex-col gap-0.5 sm:text-right">
+            <span class="text-[11px] text-white/70">
+              어제 대비 예상 변동
+            </span>
+            <span class="font-en text-xl sm:text-2xl font-bold tracking-tight text-[#FFB8AD]">
+              -3.29%p
+            </span>
+          </div>
+        </div>
+
+        <!-- 당일 지수 그래프: 예상 시나리오선 vs 실제 그래프 (2개의 선) -->
+        <div class="bg-black/20 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/15 flex flex-col gap-3">
+          
+          <!-- 상단 헤더 & 2개 선 범례 (Legend) -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-white tracking-tight">당일 지수 경로 비교</span>
+              <span id="chartLiveBadge" class="font-en text-[10px] px-2 py-0.5 rounded-full bg-white/15 text-white/90">실시간 반영</span>
+            </div>
+            
+            <!-- 두 개의 선 범례 (Legend) -->
+            <div class="flex items-center gap-3.5 text-xs font-en">
+              <!-- 선 1: 실제 그래프 -->
+              <div class="flex items-center gap-1.5">
+                <span class="w-4 h-0.5 bg-white rounded-full inline-block shadow-sm"></span>
+                <span class="text-white text-[11px] font-medium font-sans">실제 그래프</span>
+              </div>
+              <!-- 선 2: 예상 시나리오선 -->
+              <div class="flex items-center gap-1.5">
+                <span class="w-4 border-t-2 border-dashed border-[#FFB8AD] inline-block"></span>
+                <span class="text-[#FFB8AD] text-[11px] font-semibold font-sans">예상 시나리오선</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 인터랙티브 상태 바 / 툴팁 -->
+          <div id="chartTooltip" class="flex items-center justify-between text-[11px] text-white/80 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5 transition-all">
+            <span>차트를 터치하거나 마우스를 올리면 시점별 수치가 표시됩니다.</span>
+            <span class="font-en text-white font-medium">현재 2,522.10p (-1.88%)</span>
+          </div>
+
+          <!-- 2선 주식 SVG 그래프 -->
+          <div class="relative w-full pt-1">
+            <svg id="scenarioChartSvg" viewBox="0 0 500 165" class="w-full h-auto select-none overflow-visible cursor-crosshair">
+              <defs>
+                <!-- 실제 그래프 영역 그라데이션 -->
+                <linearGradient id="gradActual" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22" />
+                  <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+                </linearGradient>
+                <!-- 예상 시나리오선 영역 그라데이션 -->
+                <linearGradient id="gradScenario" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#FFB8AD" stop-opacity="0.10" />
+                  <stop offset="100%" stop-color="#FFB8AD" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+
+              <!-- 배경 수평 기준선 & 가격 라벨 -->
+              <g class="font-en text-[9px] fill-white/40">
+                <!-- 2,580선 -->
+                <line x1="45" y1="25" x2="465" y2="25" stroke="rgba(255,255,255,0.12)" stroke-dasharray="3,3" />
+                <text x="472" y="28" fill="rgba(255,255,255,0.6)">2,580</text>
+
+                <!-- 2,540선 (중심선) -->
+                <line x1="45" y1="82" x2="465" y2="82" stroke="rgba(255,255,255,0.12)" stroke-dasharray="3,3" />
+                <text x="472" y="85" fill="rgba(255,255,255,0.6)">2,540</text>
+
+                <!-- 2,510선 (하단 지지선) -->
+                <line x1="45" y1="126" x2="465" y2="126" stroke="rgba(255,255,255,0.12)" stroke-dasharray="3,3" />
+                <text x="472" y="129" fill="rgba(255,255,255,0.6)">2,510</text>
+              </g>
+
+              <!-- [선 1 영역] 예상 시나리오 영역 그라데이션 채우기 -->
+              <path
+                d="M 45 71 C 80.0 71.0, 80.0 104.0, 115 104 C 137.5 104.0, 137.5 123.0, 160 123 C 207.5 123.0, 207.5 105.0, 255 105 C 307.5 105.0, 307.5 92.0, 360 92 C 412.5 92.0, 412.5 85.0, 465 85 L 465 140 L 45 140 Z"
+                fill="url(#gradScenario)"
+              />
+
+              <!-- [선 1] 예상 시나리오선 (점선/Dashed Line) -->
+              <path
+                id="pathScenario"
+                d="M 45 71 C 80.0 71.0, 80.0 104.0, 115 104 C 137.5 104.0, 137.5 123.0, 160 123 C 207.5 123.0, 207.5 105.0, 255 105 C 307.5 105.0, 307.5 92.0, 360 92 C 412.5 92.0, 412.5 85.0, 465 85"
+                fill="none"
+                stroke="#FFB8AD"
+                stroke-width="2.5"
+                stroke-dasharray="6,4"
+                stroke-linecap="round"
+              />
+
+              <!-- [선 2 영역] 실제 그래프 영역 그라데이션 채우기 -->
+              <path
+                d="M 45 73 C 62.5 73.0, 62.5 85.0, 80 85 C 97.5 85.0, 97.5 99.0, 115 99 C 127.5 99.0, 127.5 117.0, 140 117 C 147.5 117.0, 147.5 119.0, 155 119 C 165.0 119.0, 165.0 108.0, 175 108 L 175 140 L 45 140 Z"
+                fill="url(#gradActual)"
+              />
+
+              <!-- [선 2] 실제 그래프 (실선/Solid Line) -->
+              <path
+                id="pathActual"
+                d="M 45 73 C 62.5 73.0, 62.5 85.0, 80 85 C 97.5 85.0, 97.5 99.0, 115 99 C 127.5 99.0, 127.5 117.0, 140 117 C 147.5 117.0, 147.5 119.0, 155 119 C 165.0 119.0, 165.0 108.0, 175 108"
+                fill="none"
+                stroke="#FFFFFF"
+                stroke-width="3"
+                stroke-linecap="round"
+              />
+
+              <!-- 현재가 실시간 펄스 비콘 (실제 그래프 끝 지점) -->
+              <g transform="translate(175, 108)">
+                <circle r="8" fill="rgba(255,255,255,0.3)" class="status-pulse" />
+                <circle r="4" fill="#FFFFFF" stroke="#234E35" stroke-width="1.5" />
+              </g>
+
+              <!-- 시나리오 마감 예측 포인트 마커 (예상 시나리오 끝 지점) -->
+              <g transform="translate(465, 85)">
+                <circle r="4" fill="#FFB8AD" stroke="#234E35" stroke-width="1.5" />
+              </g>
+
+              <!-- 상호작용 크로스헤어 세로선 & 포인터 (호버 시 표시) -->
+              <g id="chartCrosshair" class="hidden">
+                <line id="crosshairLine" x1="0" y1="20" x2="0" y2="140" stroke="rgba(255,255,255,0.4)" stroke-dasharray="2,2" />
+                <circle id="crosshairDotScenario" r="4.5" fill="#FFB8AD" stroke="#FFFFFF" stroke-width="1.5" />
+                <circle id="crosshairDotActual" r="4.5" fill="#FFFFFF" stroke="#234E35" stroke-width="1.5" />
+              </g>
+
+              <!-- X축 시간 레이블 -->
+              <g class="font-en text-[10px] fill-white/60">
+                <text x="45" y="155" text-anchor="middle">09:00</text>
+                <text x="150" y="155" text-anchor="middle">10:30</text>
+                <text x="255" y="155" text-anchor="middle">12:00</text>
+                <text x="360" y="155" text-anchor="middle">13:30</text>
+                <text x="465" y="155" text-anchor="middle">15:30</text>
+              </g>
+            </svg>
+          </div>
+
+          <!-- 하단 상태 요약 문구 -->
+          <div class="flex items-center justify-between pt-1 border-t border-white/10 text-[11px] text-white/70">
+            <span>시나리오 일치도 <strong class="text-white font-bold font-en">96.8%</strong></span>
+            <span class="text-white/60">오전 10:30 저점 통과 후 반등 흐름 추종</span>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 주요 하락 요인 3가지 -->
+      <section class="glass-card rounded-[22px] p-6 sm:p-7 flex flex-col gap-4">
+        <h3 class="text-lg font-semibold text-brand-body tracking-tight">
+          주요 하락 요인
+        </h3>
+
+        <div class="flex flex-col gap-3">
+          <div class="card-hover p-4 rounded-xl glass-card-subtle flex items-start gap-3.5">
+            <span class="font-en text-xs font-semibold tracking-wider text-brand-txt bg-[#E1ECE1] border border-[#CBDBCB] px-2 py-0.5 rounded shrink-0 mt-0.5">
+              01
+            </span>
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="text-sm sm:text-base font-semibold text-brand-body">
+                  미국 반도체 지수 급락
+                </h4>
+                <span class="font-en text-xs font-semibold text-brand-danger bg-brand-dangerBg px-2 py-0.5 rounded">
+                  -5.9%
+                </span>
+              </div>
+              <p class="text-xs sm:text-sm text-brand-muted mt-1 leading-relaxed">
+                필라델피아 반도체 지수 급락으로 삼성전자와 SK하이닉스에 하방 압력이 작용합니다.
+              </p>
+            </div>
+          </div>
+
+          <div class="card-hover p-4 rounded-xl glass-card-subtle flex items-start gap-3.5">
+            <span class="font-en text-xs font-semibold tracking-wider text-brand-txt bg-[#E1ECE1] border border-[#CBDBCB] px-2 py-0.5 rounded shrink-0 mt-0.5">
+              02
+            </span>
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="text-sm sm:text-base font-semibold text-brand-body">
+                  원·달러 환율 상승
+                </h4>
+                <span class="font-en text-xs font-semibold text-brand-body bg-[#EDF3EC] px-2 py-0.5 rounded">
+                  1,345.5원
+                </span>
+              </div>
+              <p class="text-xs sm:text-sm text-brand-muted mt-1 leading-relaxed">
+                환율이 1,345원을 웃돌며 외국인 매도 가능성이 커졌습니다.
+              </p>
+            </div>
+          </div>
+
+          <div class="card-hover p-4 rounded-xl glass-card-subtle flex items-start gap-3.5">
+            <span class="font-en text-xs font-semibold tracking-wider text-brand-txt bg-[#E1ECE1] border border-[#CBDBCB] px-2 py-0.5 rounded shrink-0 mt-0.5">
+              03
+            </span>
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="text-sm sm:text-base font-semibold text-brand-body">
+                  글로벌 관망 심리
+                </h4>
+                <span class="font-en text-xs font-semibold text-brand-muted bg-[#EDF3EC] px-2 py-0.5 rounded">
+                  변동성 확대
+                </span>
+              </div>
+              <p class="text-xs sm:text-sm text-brand-muted mt-1 leading-relaxed">
+                해외 증시 변동성 확대로 장 초반 매수세가 위축될 수 있습니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 가로 스와이프 최근 예측 기록 (가로 카드뉴스) -->
+      <section class="glass-card rounded-[22px] p-5 sm:p-6 flex flex-col gap-3.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-baseline gap-2">
+            <h3 class="text-base font-semibold text-brand-body tracking-tight">
+              최근 예측 기록
+            </h3>
+            <span class="text-xs text-brand-muted font-en">적중률 <strong class="text-brand-txt font-bold">76.7%</strong></span>
+          </div>
+          
+          <span class="text-[11px] text-brand-muted flex items-center gap-1 select-none font-medium">
+            <i data-lucide="chevrons-left-right" class="w-3.5 h-3.5 text-brand-muted"></i>
+            <span>좌우로 끌어서 넘기기</span>
+          </span>
+        </div>
+
+        <!-- 30일 누적 성과 서브 바 -->
+        <div class="flex items-center justify-between text-[11px] sm:text-xs py-2 px-3.5 rounded-xl bg-white/55 border border-[#D5E1D4] text-brand-muted">
+          <span>최근 30일 누적 성과</span>
+          <div class="flex items-center gap-2.5 sm:gap-3 font-en">
+            <span>적중 <strong class="text-brand-txt font-semibold">23회</strong></span>
+            <span class="text-[#CBD7CB]">·</span>
+            <span>불일치 <strong class="text-brand-danger font-semibold">7회</strong></span>
+            <span class="text-[#CBD7CB]">·</span>
+            <span>평균 오차 <strong class="text-brand-body font-semibold">±0.42%</strong></span>
+          </div>
+        </div>
+
+        <!-- 가로 드래그 카드뉴스 컨테이너 -->
+        <div
+          id="predictionCarousel"
+          class="card-news-deck flex overflow-x-auto gap-2.5 pb-2 pt-0.5 -mx-1 px-1 snap-x snap-mandatory scroll-smooth"
+          style="scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch;"
+        >
+          
+          <!-- 09.14 (월) -->
+          <div class="min-w-[155px] sm:min-w-[170px] snap-start glass-card-subtle p-3.5 rounded-xl flex flex-col justify-between gap-2.5 border border-[#D5E1D4] shrink-0 hover:border-brand-txt/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="font-en text-xs font-bold text-brand-body">09.14 (월)</span>
+              <span class="font-semibold text-brand-danger bg-[#F5E6E3] px-2 py-0.5 rounded text-[10px]">불일치</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-[11px] text-brand-muted flex items-center gap-1">
+                <span>예측</span>
+                <strong class="text-brand-body font-semibold">상승 ↗</strong>
+              </span>
+              <div class="flex flex-col">
+                <span class="text-[10px] text-brand-muted">종가</span>
+                <span class="font-en text-xs font-bold text-brand-body">2,570.45 <span class="text-brand-danger">(-3.26%)</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 09.11 (금) -->
+          <div class="min-w-[155px] sm:min-w-[170px] snap-start glass-card-subtle p-3.5 rounded-xl flex flex-col justify-between gap-2.5 border border-[#D5E1D4] shrink-0 hover:border-brand-txt/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="font-en text-xs font-bold text-brand-body">09.11 (금)</span>
+              <span class="font-semibold text-brand-up bg-[#E5EFE6] px-2 py-0.5 rounded text-[10px]">적중</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-[11px] text-brand-muted flex items-center gap-1">
+                <span>예측</span>
+                <strong class="text-brand-body font-semibold">하락 ↘</strong>
+              </span>
+              <div class="flex flex-col">
+                <span class="text-[10px] text-brand-muted">종가</span>
+                <span class="font-en text-xs font-bold text-brand-body">2,657.10 <span class="text-brand-danger">(-0.40%)</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 09.10 (목) -->
+          <div class="min-w-[155px] sm:min-w-[170px] snap-start glass-card-subtle p-3.5 rounded-xl flex flex-col justify-between gap-2.5 border border-[#D5E1D4] shrink-0 hover:border-brand-txt/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="font-en text-xs font-bold text-brand-body">09.10 (목)</span>
+              <span class="font-semibold text-brand-up bg-[#E5EFE6] px-2 py-0.5 rounded text-[10px]">적중</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-[11px] text-brand-muted flex items-center gap-1">
+                <span>예측</span>
+                <strong class="text-brand-body font-semibold">상승 ↗</strong>
+              </span>
+              <div class="flex flex-col">
+                <span class="text-[10px] text-brand-muted">종가</span>
+                <span class="font-en text-xs font-bold text-brand-body">2,667.80 <span class="text-brand-up">(+2.34%)</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 09.09 (수) -->
+          <div class="min-w-[155px] sm:min-w-[170px] snap-start glass-card-subtle p-3.5 rounded-xl flex flex-col justify-between gap-2.5 border border-[#D5E1D4] shrink-0 hover:border-brand-txt/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="font-en text-xs font-bold text-brand-body">09.09 (수)</span>
+              <span class="font-semibold text-brand-up bg-[#E5EFE6] px-2 py-0.5 rounded text-[10px]">적중</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-[11px] text-brand-muted flex items-center gap-1">
+                <span>예측</span>
+                <strong class="text-brand-body font-semibold">하락 ↘</strong>
+              </span>
+              <div class="flex flex-col">
+                <span class="text-[10px] text-brand-muted">종가</span>
+                <span class="font-en text-xs font-bold text-brand-body">2,606.82 <span class="text-brand-danger">(-1.49%)</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 09.06 (화) -->
+          <div class="min-w-[155px] sm:min-w-[170px] snap-start glass-card-subtle p-3.5 rounded-xl flex flex-col justify-between gap-2.5 border border-[#D5E1D4] shrink-0 hover:border-brand-txt/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="font-en text-xs font-bold text-brand-body">09.06 (화)</span>
+              <span class="font-semibold text-brand-up bg-[#E5EFE6] px-2 py-0.5 rounded text-[10px]">적중</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-[11px] text-brand-muted flex items-center gap-1">
+                <span>예측</span>
+                <strong class="text-brand-body font-semibold">하락 ↘</strong>
+              </span>
+              <div class="flex flex-col">
+                <span class="text-[10px] text-brand-muted">종가</span>
+                <span class="font-en text-xs font-bold text-brand-body">2,646.20 <span class="text-brand-danger">(-0.83%)</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 09.05 (월) -->
+          <div class="min-w-[155px] sm:min-w-[170px] snap-start glass-card-subtle p-3.5 rounded-xl flex flex-col justify-between gap-2.5 border border-[#D5E1D4] shrink-0 hover:border-brand-txt/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="font-en text-xs font-bold text-brand-body">09.05 (월)</span>
+              <span class="font-semibold text-brand-up bg-[#E5EFE6] px-2 py-0.5 rounded text-[10px]">적중</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-[11px] text-brand-muted flex items-center gap-1">
+                <span>예측</span>
+                <strong class="text-brand-body font-semibold">하락 ↘</strong>
+              </span>
+              <div class="flex flex-col">
+                <span class="text-[10px] text-brand-muted">종가</span>
+                <span class="font-en text-xs font-bold text-brand-body">2,668.30 <span class="text-brand-danger">(-0.21%)</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 09.04 (금) -->
+          <div class="min-w-[155px] sm:min-w-[170px] snap-start glass-card-subtle p-3.5 rounded-xl flex flex-col justify-between gap-2.5 border border-[#D5E1D4] shrink-0 hover:border-brand-txt/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="font-en text-xs font-bold text-brand-body">09.04 (금)</span>
+              <span class="font-semibold text-brand-up bg-[#E5EFE6] px-2 py-0.5 rounded text-[10px]">적중</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-[11px] text-brand-muted flex items-center gap-1">
+                <span>예측</span>
+                <strong class="text-brand-body font-semibold">상승 ↗</strong>
+              </span>
+              <div class="flex flex-col">
+                <span class="text-[10px] text-brand-muted">종가</span>
+                <span class="font-en text-xs font-bold text-brand-body">2,674.15 <span class="text-brand-up">(+0.78%)</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 09.03 (목) -->
+          <div class="min-w-[155px] sm:min-w-[170px] snap-start glass-card-subtle p-3.5 rounded-xl flex flex-col justify-between gap-2.5 border border-[#D5E1D4] shrink-0 hover:border-brand-txt/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="font-en text-xs font-bold text-brand-body">09.03 (목)</span>
+              <span class="font-semibold text-brand-up bg-[#E5EFE6] px-2 py-0.5 rounded text-[10px]">적중</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-[11px] text-brand-muted flex items-center gap-1">
+                <span>예측</span>
+                <strong class="text-brand-body font-semibold">상승 ↗</strong>
+              </span>
+              <div class="flex flex-col">
+                <span class="text-[10px] text-brand-muted">종가</span>
+                <span class="font-en text-xs font-bold text-brand-body">2,653.20 <span class="text-brand-up">(+1.12%)</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 09.02 (수) -->
+          <div class="min-w-[155px] sm:min-w-[170px] snap-start glass-card-subtle p-3.5 rounded-xl flex flex-col justify-between gap-2.5 border border-[#D5E1D4] shrink-0 hover:border-brand-txt/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="font-en text-xs font-bold text-brand-body">09.02 (수)</span>
+              <span class="font-semibold text-brand-up bg-[#E5EFE6] px-2 py-0.5 rounded text-[10px]">적중</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-[11px] text-brand-muted flex items-center gap-1">
+                <span>예측</span>
+                <strong class="text-brand-body font-semibold">하락 ↘</strong>
+              </span>
+              <div class="flex flex-col">
+                <span class="text-[10px] text-brand-muted">종가</span>
+                <span class="font-en text-xs font-bold text-brand-body">2,624.00 <span class="text-brand-danger">(-0.65%)</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 08.30 (화) -->
+          <div class="min-w-[155px] sm:min-w-[170px] snap-start glass-card-subtle p-3.5 rounded-xl flex flex-col justify-between gap-2.5 border border-[#D5E1D4] shrink-0 hover:border-brand-txt/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="font-en text-xs font-bold text-brand-body">08.30 (화)</span>
+              <span class="font-semibold text-brand-up bg-[#E5EFE6] px-2 py-0.5 rounded text-[10px]">적중</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-[11px] text-brand-muted flex items-center gap-1">
+                <span>예측</span>
+                <strong class="text-brand-body font-semibold">하락 ↘</strong>
+              </span>
+              <div class="flex flex-col">
+                <span class="text-[10px] text-brand-muted">종가</span>
+                <span class="font-en text-xs font-bold text-brand-body">2,641.10 <span class="text-brand-danger">(-0.45%)</span></span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 카드 드래그 인디케이터 (진행 트랙) -->
+        <div class="w-full bg-[#D5E1D4]/55 h-1 rounded-full overflow-hidden mt-0.5">
+          <div id="predictionProgressBar" class="bg-brand-txt h-full rounded-full transition-all duration-150" style="width: 20%;"></div>
+        </div>
+      </section>
+
+      <!-- 홈 탭 투표 섹션 -->
+      <section class="glass-card rounded-[22px] p-6 sm:p-7 flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-brand-body tracking-tight">
+            오늘 코스피 전망 투표
+          </h3>
+          <span id="voteTotalText" class="font-en text-xs text-brand-muted">1,420명 참여</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <button
+            id="btnVoteUp"
+            onclick="voteAction('up')"
+            class="btn-press py-3.5 px-4 rounded-xl border border-[#CBD7C8] bg-white/70 hover:bg-white hover:border-brand-txt/40 text-brand-body transition flex items-center justify-between group shadow-sm"
+          >
+            <div class="flex items-center gap-2">
+              <i data-lucide="trending-up" class="w-4 h-4 text-brand-txt"></i>
+              <span class="text-sm font-semibold">상승</span>
+            </div>
+            <span id="voteUpPercent" class="font-en text-base font-bold text-brand-txt">38%</span>
+          </button>
+
+          <button
+            id="btnVoteDown"
+            onclick="voteAction('down')"
+            class="btn-press py-3.5 px-4 rounded-xl border border-[#CBD7C8] bg-white/70 hover:bg-white hover:border-brand-txt/40 text-brand-body transition flex items-center justify-between group shadow-sm"
+          >
+            <div class="flex items-center gap-2">
+              <i data-lucide="trending-down" class="w-4 h-4 text-brand-danger"></i>
+              <span class="text-sm font-semibold">하락</span>
+            </div>
+            <span id="voteDownPercent" class="font-en text-base font-bold text-brand-danger">62%</span>
+          </button>
+        </div>
+
+        <div id="voteConfirmedMsg" class="hidden p-3 rounded-lg bg-[#E2ECE2] border border-[#CBDBCB] text-xs font-medium text-brand-txt flex items-center gap-2">
+          <i data-lucide="check" class="w-3.5 h-3.5 text-brand-txt shrink-0"></i>
+          <span>투표가 반영되었습니다.</span>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TAB 2: 산업별 추이 (목록 뷰 & 상세 뷰) -->
+    <!-- ============================================== -->
+    <div id="tab-sectors" class="tab-page flex-col gap-6">
+
+      <!-- 2-A. 산업 목록 뷰 -->
+      <div id="sectorListView" class="flex flex-col gap-6">
+        
+        <!-- 산업 섹터 요약 브리핑 헤더 -->
+        <section class="studio-grd text-white rounded-[24px] p-6 sm:p-7 shadow-[0_16px_36px_-8px_rgba(35,78,53,0.28)] flex flex-col gap-4 border border-white/20">
+          <h2 class="text-xl sm:text-2xl font-semibold tracking-tight leading-snug">
+            반도체·IT 하방 압력,<br />
+            방산·금융 상대적 방어 예상
+          </h2>
+
+          <!-- 섹터별 시장 비중 바 -->
+          <div class="flex flex-col gap-1.5 pt-1">
+            <div class="flex justify-between text-[11px] font-en text-white/70">
+              <span>상승 예상 (25%)</span>
+              <span>보합 (20%)</span>
+              <span>하락 예상 (55%)</span>
+            </div>
+            <div class="w-full h-2.5 bg-white/20 rounded-full overflow-hidden flex">
+              <div class="bg-[#5BC37D] h-full" style="width: 25%;"></div>
+              <div class="bg-[#DDE5DC] h-full" style="width: 20%;"></div>
+              <div class="bg-[#FF9485] h-full" style="width: 55%;"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 기간 선택 필터 토글 -->
+        <div class="flex items-center justify-between gap-1 p-1 bg-white/60 backdrop-blur-md rounded-2xl border border-[#CBD7C8]">
+          <button onclick="changeSectorPeriod('today', this)" class="sector-period-btn flex-1 py-2 text-xs font-semibold rounded-xl bg-brand-txt text-white shadow-sm transition">
+            오늘 장전
+          </button>
+          <button onclick="changeSectorPeriod('week', this)" class="sector-period-btn flex-1 py-2 text-xs font-medium text-brand-muted hover:text-brand-txt transition">
+            최근 1주일
+          </button>
+          <button onclick="changeSectorPeriod('month', this)" class="sector-period-btn flex-1 py-2 text-xs font-medium text-brand-muted hover:text-brand-txt transition">
+            1개월 누적
+          </button>
+        </div>
+
+        <!-- 6대 핵심 산업 섹터 카드 리스트 (클릭 가능) -->
+        <section class="flex flex-col gap-3">
+
+          <!-- 1. 반도체 & 대형 IT -->
+          <div onclick="openSectorDetail('semi')" class="glass-card card-hover rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 cursor-pointer group">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-xl bg-[#FBF2F0] border border-[#F2D7D3] flex items-center justify-center text-brand-danger shrink-0">
+                  <i data-lucide="cpu" class="w-4 h-4"></i>
+                </span>
+                <div>
+                  <h4 class="text-base font-semibold text-brand-body tracking-tight group-hover:text-brand-txt transition">
+                    반도체 · IT
+                  </h4>
+                  <span class="text-[11px] text-brand-muted">삼성전자, SK하이닉스</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="pct-semi" class="font-en text-base font-bold text-brand-danger">-3.8%</span>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-brand-muted/70 group-hover:translate-x-0.5 transition"></i>
+              </div>
+            </div>
+            <p class="text-xs text-brand-body/90 leading-relaxed pl-10">
+              미국 필라델피아 반도체 지수 급락(-5.9%) 영향으로 하락 출발 유력.
+            </p>
+          </div>
+
+          <!-- 2. 2차전지 & 배터리 -->
+          <div onclick="openSectorDetail('battery')" class="glass-card card-hover rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 cursor-pointer group">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-xl bg-[#FBF2F0] border border-[#F2D7D3] flex items-center justify-center text-brand-danger shrink-0">
+                  <i data-lucide="zap" class="w-4 h-4"></i>
+                </span>
+                <div>
+                  <h4 class="text-base font-semibold text-brand-body tracking-tight group-hover:text-brand-txt transition">
+                    2차전지 · 에너지
+                  </h4>
+                  <span class="text-[11px] text-brand-muted">LG에너지솔루션, POSCO홀딩스</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="pct-battery" class="font-en text-base font-bold text-brand-danger">-1.4%</span>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-brand-muted/70 group-hover:translate-x-0.5 transition"></i>
+              </div>
+            </div>
+            <p class="text-xs text-brand-body/90 leading-relaxed pl-10">
+              전기차 수요 둔화 우려로 단기 반등 동력 부재, 지지선 테스트.
+            </p>
+          </div>
+
+          <!-- 3. 바이오 & 헬스케어 -->
+          <div onclick="openSectorDetail('bio')" class="glass-card card-hover rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 cursor-pointer group">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-xl bg-brand-upBg border border-[#D5EADB] flex items-center justify-center text-brand-up shrink-0">
+                  <i data-lucide="activity" class="w-4 h-4"></i>
+                </span>
+                <div>
+                  <h4 class="text-base font-semibold text-brand-body tracking-tight group-hover:text-brand-txt transition">
+                    바이오 · 헬스케어
+                  </h4>
+                  <span class="text-[11px] text-brand-muted">삼성바이오로직스, 셀트리온</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="pct-bio" class="font-en text-base font-bold text-brand-up">+0.5%</span>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-brand-muted/70 group-hover:translate-x-0.5 transition"></i>
+              </div>
+            </div>
+            <p class="text-xs text-brand-body/90 leading-relaxed pl-10">
+              미국 금리 인하 기대감과 경기 방어 매수세 유입으로 선방 전망.
+            </p>
+          </div>
+
+          <!-- 4. 금융 & 지주사 -->
+          <div onclick="openSectorDetail('finance')" class="glass-card card-hover rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 cursor-pointer group">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-xl bg-brand-upBg border border-[#D5EADB] flex items-center justify-center text-brand-up shrink-0">
+                  <i data-lucide="landmark" class="w-4 h-4"></i>
+                </span>
+                <div>
+                  <h4 class="text-base font-semibold text-brand-body tracking-tight group-hover:text-brand-txt transition">
+                    금융 · 지주
+                  </h4>
+                  <span class="text-[11px] text-brand-muted">KB금융, 신한지주</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="pct-finance" class="font-en text-base font-bold text-brand-up">+0.9%</span>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-brand-muted/70 group-hover:translate-x-0.5 transition"></i>
+              </div>
+            </div>
+            <p class="text-xs text-brand-body/90 leading-relaxed pl-10">
+              밸류업 정책 기대 및 고배당 매력으로 지수 하락 방어 흐름.
+            </p>
+          </div>
+
+          <!-- 5. 조선 & 방산 & 기계 -->
+          <div onclick="openSectorDetail('defense')" class="glass-card card-hover rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 cursor-pointer group">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-xl bg-brand-upBg border border-[#D5EADB] flex items-center justify-center text-brand-up shrink-0">
+                  <i data-lucide="shield-check" class="w-4 h-4"></i>
+                </span>
+                <div>
+                  <h4 class="text-base font-semibold text-brand-body tracking-tight group-hover:text-brand-txt transition">
+                    조선 · 방산 · 기계
+                  </h4>
+                  <span class="text-[11px] text-brand-muted">한화에어로, HD현대중공업</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="pct-defense" class="font-en text-base font-bold text-brand-up">+1.6%</span>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-brand-muted/70 group-hover:translate-x-0.5 transition"></i>
+              </div>
+            </div>
+            <p class="text-xs text-brand-body/90 leading-relaxed pl-10">
+              해외 수주 모멘텀 지속으로 독자적 강세 흐름 예상.
+            </p>
+          </div>
+
+          <!-- 6. 자동차 & 운송 -->
+          <div onclick="openSectorDetail('auto')" class="glass-card card-hover rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 cursor-pointer group">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-xl bg-[#F4F7F3] border border-[#D8E3D7] flex items-center justify-center text-brand-body shrink-0">
+                  <i data-lucide="truck" class="w-4 h-4"></i>
+                </span>
+                <div>
+                  <h4 class="text-base font-semibold text-brand-body tracking-tight group-hover:text-brand-txt transition">
+                    자동차 · 부품
+                  </h4>
+                  <span class="text-[11px] text-brand-muted">현대차, 기아</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="pct-auto" class="font-en text-base font-bold text-brand-body">-0.4%</span>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-brand-muted/70 group-hover:translate-x-0.5 transition"></i>
+              </div>
+            </div>
+            <p class="text-xs text-brand-body/90 leading-relaxed pl-10">
+              환율 상승 수혜와 경기 둔화 우려가 팽팽히 맞서는 보합 국면.
+            </p>
+          </div>
+
+        </section>
+
+      </div>
+
+      <!-- 2-B. 섹터 상세 페이지 뷰 (카드 클릭 시 표시) -->
+      <div id="sectorDetailView" class="hidden flex-col gap-5">
+        
+        <!-- 뒤로가기 바 -->
+        <div class="flex items-center justify-between pb-1">
+          <button onclick="closeSectorDetail()" class="btn-press flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/70 border border-[#CBD7C8] text-xs font-semibold text-brand-body hover:bg-white transition shadow-sm">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+            <span>전체 산업 목록</span>
+          </button>
+          <span id="detailWeight" class="font-en text-xs text-brand-muted font-medium">시총 비중 28.4%</span>
+        </div>
+
+        <!-- 섹터 상세 히어로 카드 -->
+        <section class="studio-grd text-white rounded-[24px] p-6 shadow-[0_16px_36px_-8px_rgba(35,78,53,0.28)] flex flex-col gap-3 border border-white/20">
+          <div class="flex items-center justify-between border-b border-white/15 pb-2.5">
+            <span class="text-xs font-medium text-white/80">산업 분석</span>
+            <span id="detailPctPill" class="font-en text-xs font-bold text-white px-2.5 py-0.5 rounded-md bg-white/20">-3.8%</span>
+          </div>
+
+          <h2 id="detailTitle" class="text-2xl font-bold tracking-tight text-white">
+            반도체 · IT
+          </h2>
+          <p id="detailDesc" class="text-xs sm:text-sm text-white/85 leading-relaxed font-light">
+            미국 필라델피아 반도체 지수 급락(-5.9%) 및 엔비디아 조정 여파로 하락 출발 유력.
+          </p>
+        </section>
+
+        <!-- 1. 핵심 대장주 현재가/예상가 -->
+        <section class="glass-card rounded-[22px] p-5 sm:p-6 flex flex-col gap-3.5">
+          <h3 class="text-base font-semibold text-brand-body tracking-tight">
+            핵심 대표 종목
+          </h3>
+          <div id="detailStocksList" class="flex flex-col gap-2.5">
+            <!-- 동적 렌더링 -->
+          </div>
+        </section>
+
+        <!-- 2. 주체별 수급 동향 -->
+        <section class="glass-card rounded-[22px] p-5 sm:p-6 flex flex-col gap-3.5">
+          <h3 class="text-base font-semibold text-brand-body tracking-tight">
+            수급 동향
+          </h3>
+          <div id="detailFlowsList" class="grid grid-cols-3 gap-2.5">
+            <!-- 동적 렌더링 -->
+          </div>
+        </section>
+
+        <!-- 3. 핵심 가격 동인 / 글로벌 연동 지표 -->
+        <section class="glass-card rounded-[22px] p-5 sm:p-6 flex flex-col gap-3.5">
+          <h3 class="text-base font-semibold text-brand-body tracking-tight">
+            연동 핵심 지표
+          </h3>
+          <div id="detailDriversList" class="flex flex-col gap-2">
+            <!-- 동적 렌더링 -->
+          </div>
+        </section>
+
+        <!-- 4. 장전 실전 대응 전략 포인트 -->
+        <section class="glass-card rounded-[22px] p-5 sm:p-6 flex flex-col gap-3">
+          <h3 class="text-base font-semibold text-brand-body tracking-tight">
+            장전 체크포인트
+          </h3>
+          <ul id="detailCheckpointsList" class="flex flex-col gap-2 text-xs text-[#3E5244] leading-relaxed">
+            <!-- 동적 렌더링 -->
+          </ul>
+        </section>
+
+        <!-- 5. 산업별 실시간 토론 커뮤니티 -->
+        <section class="glass-card rounded-[22px] p-5 sm:p-6 flex flex-col gap-4">
+          <div class="flex items-center justify-between border-b border-[#D8E3D7] pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="messages-square" class="w-4 h-4 text-brand-txt"></i>
+              <h3 id="sectorCommunityTitle" class="text-base font-semibold text-brand-body tracking-tight">
+                반도체 · IT 투자자 의견
+              </h3>
+            </div>
+            <span id="sectorCommentCount" class="font-en text-xs font-semibold px-2.5 py-0.5 bg-[#E1EBE0] text-brand-txt rounded-full border border-[#CBD7CB]">
+              3
+            </span>
+          </div>
+
+          <!-- 의견 작성 폼 -->
+          <form onsubmit="addSectorComment(event)" class="flex flex-col gap-2.5 bg-white/60 p-3.5 rounded-xl border border-[#D5E1D4]">
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input
+                id="sectorAuthorInput"
+                type="text"
+                placeholder="닉네임 (선택)"
+                class="sm:w-1/3 bg-white/90 border border-[#CCD8CB] rounded-lg px-3 py-2 text-xs sm:text-sm text-brand-body placeholder-[#8F9E8E] focus:outline-none focus:border-brand-txt shadow-inner"
+              />
+              <input
+                id="sectorTextInput"
+                type="text"
+                required
+                placeholder="이 산업에 대한 투자 의견이나 정보를 남겨보세요..."
+                class="flex-1 bg-white/90 border border-[#CCD8CB] rounded-lg px-3 py-2 text-xs sm:text-sm text-brand-body placeholder-[#8F9E8E] focus:outline-none focus:border-brand-txt shadow-inner"
+              />
+            </div>
+            <div class="flex justify-end">
+              <button
+                type="submit"
+                class="btn-press bg-brand-txt hover:bg-brand-dark text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
+              >
+                <span>등록</span>
+                <i data-lucide="send" class="w-3 h-3"></i>
+              </button>
+            </div>
+          </form>
+
+          <!-- 해당 산업의 실시간 의견 피드 목록 -->
+          <div id="sectorCommentList" class="flex flex-col gap-2.5">
+            <!-- 동적으로 해당 산업별 댓글 렌더링 -->
+          </div>
+        </section>
+
+      </div>
+
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TAB 3: 시장 지표 & 수급 (종합 진단실) -->
+    <!-- ============================================== -->
+    <div id="tab-indicators" class="tab-page flex-col gap-6">
+
+      <!-- 1. 시장 심리 & 변동성 지표 요약 -->
+      <section class="studio-grd text-white rounded-[24px] p-6 shadow-[0_16px_36px_-8px_rgba(35,78,53,0.28)] flex flex-col gap-4 border border-white/20">
+        <div class="flex items-center justify-between border-b border-white/15 pb-3">
+          <span class="text-xs font-medium text-white/85">
+            시장 심리 & 변동성
+          </span>
+          <span class="font-en text-xs font-bold text-[#FFB8AD] px-2 py-0.5 rounded bg-white/10">
+            공포 (32 pt)
+          </span>
+        </div>
+
+        <!-- 공포 탐욕 게이지 바 -->
+        <div class="flex flex-col gap-1.5">
+          <div class="flex justify-between text-[11px] font-en text-white/70">
+            <span>극도의 공포 (0)</span>
+            <span>중립 (50)</span>
+            <span>극도의 탐욕 (100)</span>
+          </div>
+          <div class="w-full h-2.5 bg-white/20 rounded-full overflow-hidden p-0.5">
+            <div class="h-full bg-gradient-to-r from-[#FF8577] via-[#F3C472] to-[#67D487] rounded-full" style="width: 32%;"></div>
+          </div>
+        </div>
+
+        <!-- 변동성 3대 지표 미니 그리드 -->
+        <div class="grid grid-cols-3 gap-2 pt-1">
+          <div class="bg-white/10 rounded-xl p-2.5 flex flex-col gap-0.5 text-center">
+            <span class="text-[10px] text-white/70">CBOE VIX</span>
+            <span class="font-en text-sm font-bold text-[#FFB8AD]">19.85</span>
+            <span class="font-en text-[10px] text-[#FFB8AD]">+18.2%</span>
+          </div>
+          <div class="bg-white/10 rounded-xl p-2.5 flex flex-col gap-0.5 text-center">
+            <span class="text-[10px] text-white/70">VKOSPI</span>
+            <span class="font-en text-sm font-bold text-[#FFB8AD]">18.40</span>
+            <span class="font-en text-[10px] text-[#FFB8AD]">+12.4%</span>
+          </div>
+          <div class="bg-white/10 rounded-xl p-2.5 flex flex-col gap-0.5 text-center">
+            <span class="text-[10px] text-white/70">코스피 ADR</span>
+            <span class="font-en text-sm font-bold text-white">74.2%</span>
+            <span class="text-[10px] text-white/70">과매도 진입</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. 글로벌 주요 증시 마감 현황 -->
+      <section class="glass-card rounded-[22px] p-5 sm:p-6 flex flex-col gap-3.5">
+        <div class="flex items-center justify-between border-b border-[#D8E3D7] pb-2.5">
+          <h3 class="text-base font-semibold text-brand-body tracking-tight">
+            글로벌 주요 증시
+          </h3>
+          <span class="font-en text-xs text-brand-muted">마감 지수</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between">
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-brand-body">미국 나스닥</span>
+              <span class="font-en text-xs text-brand-muted">17,136.2</span>
+            </div>
+            <span class="font-en text-xs font-bold text-brand-danger">-3.26%</span>
+          </div>
+
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between">
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-brand-body">필라델피아 반도체</span>
+              <span class="font-en text-xs text-brand-muted">4,892.1</span>
+            </div>
+            <span class="font-en text-xs font-bold text-brand-danger">-5.90%</span>
+          </div>
+
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between">
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-brand-body">미국 S&P 500</span>
+              <span class="font-en text-xs text-brand-muted">5,503.4</span>
+            </div>
+            <span class="font-en text-xs font-bold text-brand-danger">-2.12%</span>
+          </div>
+
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between">
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-brand-body">미국 다우</span>
+              <span class="font-en text-xs text-brand-muted">40,736.9</span>
+            </div>
+            <span class="font-en text-xs font-bold text-brand-danger">-1.51%</span>
+          </div>
+
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between">
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-brand-body">일본 니케이 225</span>
+              <span class="font-en text-xs text-brand-muted">36,581.7</span>
+            </div>
+            <span class="font-en text-xs font-bold text-brand-danger">-2.40%</span>
+          </div>
+
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between">
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-brand-body">대만 가권</span>
+              <span class="font-en text-xs text-brand-muted">21,092.7</span>
+            </div>
+            <span class="font-en text-xs font-bold text-brand-danger">-3.10%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 외환 · 원자재 · 금리 -->
+      <section class="glass-card rounded-[22px] p-5 sm:p-6 flex flex-col gap-3.5">
+        <div class="flex items-center justify-between border-b border-[#D8E3D7] pb-2.5">
+          <h3 class="text-base font-semibold text-brand-body tracking-tight">
+            외환 · 원자재 · 금리
+          </h3>
+          <span class="font-en text-xs text-brand-muted">실시간 변동</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- 환율 -->
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between">
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-brand-body">원·달러 환율</span>
+              <span class="font-en text-xs text-brand-muted">1,345.50원</span>
+            </div>
+            <span class="font-en text-xs font-bold text-brand-danger">+4.20</span>
+          </div>
+
+          <!-- 달러 인덱스 -->
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between">
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-brand-body">달러 인덱스 (DXY)</span>
+              <span class="font-en text-xs text-brand-muted">101.45 pt</span>
+            </div>
+            <span class="font-en text-xs font-bold text-brand-danger">+0.32%</span>
+          </div>
+
+          <!-- 유가 -->
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between">
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-brand-body">WTI 원유</span>
+              <span class="font-en text-xs text-brand-muted">$70.25 / 배럴</span>
+            </div>
+            <span class="font-en text-xs font-bold text-brand-body">+1.15%</span>
+          </div>
+
+          <!-- 국제 금 -->
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between">
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-brand-body">국제 금 (Gold)</span>
+              <span class="font-en text-xs text-brand-muted">$2,582.40 / oz</span>
+            </div>
+            <span class="font-en text-xs font-bold text-brand-up">+0.45%</span>
+          </div>
+
+          <!-- 미 국채 10년물 -->
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between">
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-brand-body">미 국채 10년물</span>
+              <span class="font-en text-xs text-brand-muted">3.65%</span>
+            </div>
+            <span class="font-en text-xs font-bold text-brand-up">-0.03%p</span>
+          </div>
+
+          <!-- 미 국채 2년물 -->
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between">
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-brand-body">미 국채 2년물</span>
+              <span class="font-en text-xs text-brand-muted">3.58%</span>
+            </div>
+            <span class="font-en text-xs font-bold text-brand-up">-0.05%p</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. 현물 & 선물 종합 수급 동향 -->
+      <section class="glass-card rounded-[22px] p-5 sm:p-6 flex flex-col gap-3.5">
+        <div class="flex items-center justify-between border-b border-[#D8E3D7] pb-2.5">
+          <h3 class="text-base font-semibold text-brand-body tracking-tight">
+            시장별 투자자 수급
+          </h3>
+          <span class="font-en text-xs text-brand-muted">09.14 마감 기준</span>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <!-- 코스피 현물 -->
+          <div class="p-3 rounded-xl glass-card-subtle flex flex-col gap-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <span class="font-semibold text-brand-body">코스피 현물</span>
+              <span class="text-[11px] text-brand-danger font-semibold">외인 대량 매도</span>
+            </div>
+            <div class="grid grid-cols-3 text-center text-xs font-en pt-0.5">
+              <div><span class="text-brand-muted text-[10px] block">외국인</span><span class="font-bold text-brand-danger">-6,420억</span></div>
+              <div><span class="text-brand-muted text-[10px] block">기관</span><span class="font-bold text-brand-danger">-1,850억</span></div>
+              <div><span class="text-brand-muted text-[10px] block">개인</span><span class="font-bold text-brand-up">+7,980억</span></div>
+            </div>
+          </div>
+
+          <!-- 코스피 200 선물 -->
+          <div class="p-3 rounded-xl glass-card-subtle flex flex-col gap-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <span class="font-semibold text-brand-body">코스피 200 선물</span>
+              <span class="text-[11px] text-brand-danger font-semibold">하방 포지션 확대</span>
+            </div>
+            <div class="grid grid-cols-3 text-center text-xs font-en pt-0.5">
+              <div><span class="text-brand-muted text-[10px] block">외국인</span><span class="font-bold text-brand-danger">-7,850계약</span></div>
+              <div><span class="text-brand-muted text-[10px] block">기관</span><span class="font-bold text-brand-up">+2,400계약</span></div>
+              <div><span class="text-brand-muted text-[10px] block">개인</span><span class="font-bold text-brand-up">+5,200계약</span></div>
+            </div>
+          </div>
+
+          <!-- 코스닥 현물 -->
+          <div class="p-3 rounded-xl glass-card-subtle flex flex-col gap-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <span class="font-semibold text-brand-body">코스닥 현물</span>
+              <span class="text-[11px] text-brand-muted">약세 동조</span>
+            </div>
+            <div class="grid grid-cols-3 text-center text-xs font-en pt-0.5">
+              <div><span class="text-brand-muted text-[10px] block">외국인</span><span class="font-bold text-brand-danger">-1,230억</span></div>
+              <div><span class="text-brand-muted text-[10px] block">기관</span><span class="font-bold text-brand-danger">-450억</span></div>
+              <div><span class="text-brand-muted text-[10px] block">개인</span><span class="font-bold text-brand-up">+1,620억</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 오늘의 핵심 경제 캘린더 -->
+      <section class="glass-card rounded-[22px] p-5 sm:p-6 flex flex-col gap-3.5">
+        <div class="flex items-center justify-between border-b border-[#D8E3D7] pb-2.5">
+          <h3 class="text-base font-semibold text-brand-body tracking-tight">
+            오늘의 주요 경제 일정
+          </h3>
+          <span class="font-en text-xs text-brand-muted">한국 시간 기준</span>
+        </div>
+
+        <div class="flex flex-col gap-2.5">
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="font-en font-bold text-brand-txt px-2 py-0.5 bg-[#E6EFE7] rounded">21:30</span>
+              <div class="flex flex-col">
+                <span class="font-semibold text-brand-body">미국 8월 소매판매</span>
+                <span class="text-[11px] text-brand-muted">소비 경기 둔화 여부 가늠</span>
+              </div>
+            </div>
+            <div class="flex flex-col items-end font-en text-[11px]">
+              <span class="text-brand-body">예상 0.2%</span>
+              <span class="text-brand-muted">이전 1.0%</span>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="font-en font-bold text-brand-txt px-2 py-0.5 bg-[#E6EFE7] rounded">22:15</span>
+              <div class="flex flex-col">
+                <span class="font-semibold text-brand-body">미국 8월 산업생산</span>
+                <span class="text-[11px] text-brand-muted">제조업 경기 지표 확인</span>
+              </div>
+            </div>
+            <div class="flex flex-col items-end font-en text-[11px]">
+              <span class="text-brand-body">예상 0.1%</span>
+              <span class="text-brand-muted">이전 -0.6%</span>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="font-en font-bold text-brand-danger px-2 py-0.5 bg-brand-dangerBg rounded">D-1</span>
+              <div class="flex flex-col">
+                <span class="font-semibold text-brand-body">미국 FOMC 금리 결정 회의 개막</span>
+                <span class="text-[11px] text-brand-muted">0.25%p vs 0.50%p 인하 폭 촉각</span>
+              </div>
+            </div>
+            <span class="text-xs font-semibold text-brand-txt bg-[#E2EDE3] px-2 py-0.5 rounded">
+              빅이벤트
+            </span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+
+
+    <!-- 푸터 -->
+    <footer class="pt-2 pb-6 flex flex-col items-center text-center gap-1.5 border-t border-[#C7D3C6]">
+      <p class="text-[11px] text-brand-muted leading-relaxed max-w-md">
+        본 서비스에서 제공하는 정보는 투자 참고용이며, 투자 판단과 최종 책임은 투자자 본인에게 있습니다.
+      </p>
+      <span class="font-en text-[10px] text-brand-muted/80">
+        © Daily Market Flow
+      </span>
+    </footer>
+
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 고정 3개 하단 탭바 (Bottom Navigation Bar) -->
+  <!-- ============================================== -->
+  <nav class="bottom-nav fixed bottom-0 left-0 right-0 z-50 flex justify-center px-3 sm:px-6 py-2">
+    <div class="w-full max-w-[580px] grid grid-cols-3 items-center">
+      
+      <!-- 탭 1: 오늘 흐름 -->
+      <button
+        onclick="switchTab('home')"
+        id="nav-home"
+        class="nav-btn flex flex-col items-center gap-1 py-1 text-brand-txt font-semibold transition"
+      >
+        <i data-lucide="compass" class="w-5 h-5"></i>
+        <span class="text-[11px] sm:text-[12px]">오늘 흐름</span>
+      </button>
+
+      <!-- 탭 2: 산업 추이 -->
+      <button
+        onclick="switchTab('sectors')"
+        id="nav-sectors"
+        class="nav-btn flex flex-col items-center gap-1 py-1 text-[#7C9083] font-medium transition hover:text-brand-txt"
+      >
+        <i data-lucide="layers" class="w-5 h-5"></i>
+        <span class="text-[11px] sm:text-[12px]">산업 추이</span>
+      </button>
+
+      <!-- 탭 3: 시장 지표 -->
+      <button
+        onclick="switchTab('indicators')"
+        id="nav-indicators"
+        class="nav-btn flex flex-col items-center gap-1 py-1 text-[#7C9083] font-medium transition hover:text-brand-txt"
+      >
+        <i data-lucide="activity" class="w-5 h-5"></i>
+        <span class="text-[11px] sm:text-[12px]">시장 지표</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <script>
+    lucide.createIcons();
+
+    // 탭 타이틀 정의
+    const tabTitles = {
+      'home': '오늘의 코스피 흐름',
+      'sectors': '산업별 흐름 & 추이',
+      'indicators': '시장 지표 & 수급'
+    };
+
+    function switchTab(tabId) {
+      // 섹터 탭 전환 시 상세 뷰가 열려있었다면 닫고 목록으로 복구
+      if (tabId === 'sectors') {
+        closeSectorDetail();
+      }
+
+      document.querySelectorAll('.tab-page').forEach(page => {
+        page.classList.remove('active');
+      });
+
+      const targetPage = document.getElementById('tab-' + tabId);
+      if (targetPage) {
+        targetPage.classList.add('active');
+      }
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.className = 'nav-btn flex flex-col items-center gap-1 py-1 text-[#7C9083] font-medium transition hover:text-brand-txt';
+      });
+
+      const activeBtn = document.getElementById('nav-' + tabId);
+      if (activeBtn) {
+        activeBtn.className = 'nav-btn flex flex-col items-center gap-1 py-1 text-brand-txt font-semibold transition';
+      }
+
+      if (tabTitles[tabId]) {
+        document.getElementById('pageTitle').innerText = tabTitles[tabId];
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      lucide.createIcons();
+      if (tabId === 'home') {
+        setTimeout(() => {
+          updatePredictionProgress();
+          initScenarioChart();
+        }, 60);
+      }
+    }
+
+    // 카드 뉴스 마우스 드래그 & 스와이프 인터랙션 구현
+    function initCardNewsDrag() {
+      const slider = document.getElementById('predictionCarousel');
+      if (!slider) return;
+
+      let isDown = false;
+      let startX = 0;
+      let scrollLeft = 0;
+      let startTime = 0;
+      let hasDragged = false;
+
+      slider.addEventListener('mousedown', (e) => {
+        isDown = true;
+        hasDragged = false;
+        startX = e.pageX;
+        scrollLeft = slider.scrollLeft;
+        startTime = Date.now();
+        slider.classList.add('is-dragging');
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        const diff = e.pageX - startX;
+        if (Math.abs(diff) > 4) {
+          hasDragged = true;
+        }
+        slider.scrollLeft = scrollLeft - diff * 1.25;
+        updatePredictionProgress();
+      });
+
+      window.addEventListener('mouseup', (e) => {
+        if (!isDown) return;
+        isDown = false;
+        slider.classList.remove('is-dragging');
+
+        if (hasDragged) {
+          const totalDx = e.pageX - startX;
+          const dt = Math.max(1, Date.now() - startTime);
+          const velocity = totalDx / dt;
+
+          const cardStep = 190;
+          if (totalDx < -25 || velocity < -0.2) {
+            slider.scrollBy({ left: cardStep, behavior: 'smooth' });
+          } else if (totalDx > 25 || velocity > 0.2) {
+            slider.scrollBy({ left: -cardStep, behavior: 'smooth' });
+          }
+          setTimeout(updatePredictionProgress, 250);
+        }
+      });
+
+      slider.addEventListener('scroll', updatePredictionProgress, { passive: true });
+
+      slider.addEventListener('click', (e) => {
+        if (hasDragged) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+
+      updatePredictionProgress();
+    }
+
+    function updatePredictionProgress() {
+      const slider = document.getElementById('predictionCarousel');
+      const bar = document.getElementById('predictionProgressBar');
+      if (!slider || !bar) return;
+      const max = slider.scrollWidth - slider.clientWidth;
+      if (max > 0) {
+        const ratio = Math.min(1, Math.max(0, slider.scrollLeft / max));
+        const widthPct = 15 + ratio * 85;
+        bar.style.width = widthPct + '%';
+      }
+    }
+
+    // 당일 지수 그래프 (예상 시나리오선 vs 실제 그래프 2선) 상호작용
+    function initScenarioChart() {
+      const svg = document.getElementById('scenarioChartSvg');
+      const tooltip = document.getElementById('chartTooltip');
+      const crosshair = document.getElementById('chartCrosshair');
+      const line = document.getElementById('crosshairLine');
+      const dotScen = document.getElementById('crosshairDotScenario');
+      const dotAct = document.getElementById('crosshairDotActual');
+      if (!svg || !tooltip || !crosshair) return;
+
+      const chartData = [
+        { x: 45, time: '09:00 (개장)', act: 2546.50, scen: 2548.00, actY: 73, scenY: 71, hasAct: true },
+        { x: 80, time: '09:30', act: 2538.00, scen: 2536.00, actY: 85, scenY: 88, hasAct: true },
+        { x: 115, time: '10:00', act: 2528.50, scen: 2525.00, actY: 99, scenY: 104, hasAct: true },
+        { x: 155, time: '10:30 (저점확인)', act: 2514.80, scen: 2515.00, actY: 119, scenY: 121, hasAct: true },
+        { x: 175, time: '10:45 (현재가)', act: 2522.10, scen: 2518.00, actY: 108, scenY: 118, hasAct: true },
+        { x: 255, time: '12:00 (예상)', act: null, scen: 2524.00, actY: null, scenY: 105, hasAct: false },
+        { x: 360, time: '13:30 (예상)', act: null, scen: 2533.00, actY: null, scenY: 92, hasAct: false },
+        { x: 465, time: '15:30 (마감예상)', act: null, scen: 2538.00, actY: null, scenY: 85, hasAct: false }
+      ];
+
+      const onMove = (e) => {
+        const rect = svg.getBoundingClientRect();
+        const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : null);
+        if (!clientX) return;
+        const relX = ((clientX - rect.left) / rect.width) * 500;
+
+        let closest = chartData[0];
+        let minDist = 9999;
+        chartData.forEach(pt => {
+          const dist = Math.abs(pt.x - relX);
+          if (dist < minDist) {
+            minDist = dist;
+            closest = pt;
+          }
+        });
+
+        crosshair.classList.remove('hidden');
+        line.setAttribute('x1', closest.x);
+        line.setAttribute('x2', closest.x);
+        dotScen.setAttribute('cx', closest.x);
+        dotScen.setAttribute('cy', closest.scenY);
+
+        if (closest.hasAct) {
+          dotAct.style.display = 'block';
+          dotAct.setAttribute('cx', closest.x);
+          dotAct.setAttribute('cy', closest.actY);
+          const diff = (closest.act - closest.scen).toFixed(1);
+          const diffStr = diff >= 0 ? `+${diff}` : `${diff}`;
+          tooltip.innerHTML = `
+            <span class="font-en text-white font-bold">[${closest.time}]</span>
+            <span>실제 <strong class="text-white font-en">${closest.act.toFixed(2)}p</strong> · 예상 <strong class="text-[#FFB8AD] font-en">${closest.scen.toFixed(2)}p</strong> (오차 ${diffStr}p)</span>
+          `;
+        } else {
+          dotAct.style.display = 'none';
+          tooltip.innerHTML = `
+            <span class="font-en text-white font-bold">[${closest.time}]</span>
+            <span>시나리오 예상 경로: <strong class="text-[#FFB8AD] font-en">${closest.scen.toFixed(2)}p</strong></span>
+          `;
+        }
+      };
+
+      const onLeave = () => {
+        crosshair.classList.add('hidden');
+        tooltip.innerHTML = `
+          <span>차트를 터치하거나 마우스를 올리면 시점별 수치가 표시됩니다.</span>
+          <span class="font-en text-white font-medium">현재 2,522.10p (-1.88%)</span>
+        `;
+      };
+
+      svg.addEventListener('mousemove', onMove);
+      svg.addEventListener('touchmove', onMove, { passive: true });
+      svg.addEventListener('mouseleave', onLeave);
+      svg.addEventListener('touchend', onLeave);
+    }
+
+    // 6대 산업별 실전 상세 데이터
+    const sectorDetails = {
+      semi: {
+        name: '반도체 · IT',
+        pct: '-3.8%',
+        pctClass: 'text-brand-danger',
+        weight: '시총 비중 28.4%',
+        desc: '미국 필라델피아 반도체 지수 급락(-5.9%) 및 엔비디아 차익 매물 출회로 코스피 장 초반 하락 압력의 진원지입니다.',
+        stocks: [
+          { name: '삼성전자', code: '005930', price: '64,500원', change: '-2.8%', changeClass: 'text-brand-danger', note: '외인 순매도 우세' },
+          { name: 'SK하이닉스', code: '000660', price: '158,000원', change: '-4.9%', changeClass: 'text-brand-danger', note: '엔비디아 연동 하락' },
+          { name: '한미반도체', code: '042700', price: '98,200원', change: '-4.1%', changeClass: 'text-brand-danger', note: '고밸류 차익실현' }
+        ],
+        flows: [
+          { name: '외국인', amount: '-4,280억', class: 'text-brand-danger' },
+          { name: '기관', amount: '-1,150억', class: 'text-brand-danger' },
+          { name: '개인', amount: '+5,430억', class: 'text-brand-up' }
+        ],
+        drivers: [
+          { label: '필라델피아 반도체 (SOX)', val: '4,892.1 (-5.90%)', class: 'text-brand-danger' },
+          { label: '엔비디아 (NVDA)', val: '$106.20 (-9.53%)', class: 'text-brand-danger' },
+          { label: 'DRAM DXI 고정지수', val: '27,850 (+0.4%)', class: 'text-brand-body' }
+        ],
+        checkpoints: [
+          '개장 직후 외국인의 삼성전자·SK하이닉스 순매도 규모 확인',
+          '오전 10시 이후 낙폭 과대에 따른 저가 매수세 유입 여부',
+          '신규 매수는 코스피 지지선(2,508선) 안착 확인 후 권장'
+        ]
+      },
+      battery: {
+        name: '2차전지 · 에너지',
+        pct: '-1.4%',
+        pctClass: 'text-brand-danger',
+        weight: '시총 비중 11.2%',
+        desc: '글로벌 전기차 수요 둔화 우려로 단기 모멘텀이 약화된 상태이며, 주요 지지선 방어 테스트가 진행 중입니다.',
+        stocks: [
+          { name: 'LG에너지솔루션', code: '373220', price: '388,500원', change: '-1.5%', changeClass: 'text-brand-danger', note: '기관 매도 우세' },
+          { name: 'POSCO홀딩스', code: '005490', price: '346,000원', change: '-1.2%', changeClass: 'text-brand-danger', note: '외인 순매수 유입' },
+          { name: '에코프로머티', code: '450080', price: '74,300원', change: '-2.1%', changeClass: 'text-brand-danger', note: '거래량 둔화' }
+        ],
+        flows: [
+          { name: '외국인', amount: '+340억', class: 'text-brand-up' },
+          { name: '기관', amount: '-890억', class: 'text-brand-danger' },
+          { name: '개인', amount: '+550억', class: 'text-brand-up' }
+        ],
+        drivers: [
+          { label: '탄산리튬 현물가', val: '72,500위안/톤 (-0.7%)', class: 'text-brand-danger' },
+          { label: '테슬라 (TSLA)', val: '$210.10 (-1.82%)', class: 'text-brand-danger' },
+          { label: '원가 스프레드', val: '전분기 대비 보합', class: 'text-brand-body' }
+        ],
+        checkpoints: [
+          'LG에너지솔루션 38만 원 지지선 방어 확인',
+          '미국 대선 관련 전기차 보조금(IRA) 이슈 동향 주시',
+          '원자재 가격 반등 확인 전까지 보수적 접근'
+        ]
+      },
+      bio: {
+        name: '바이오 · 헬스케어',
+        pct: '+0.5%',
+        pctClass: 'text-brand-up',
+        weight: '시총 비중 9.8%',
+        desc: '미국 기준금리 인하 기조와 경기 방어적 매력이 맞물려, 지수 하락장 속 상대적 수급 유입이 기대됩니다.',
+        stocks: [
+          { name: '삼성바이오로직스', code: '207940', price: '985,000원', change: '+0.8%', changeClass: 'text-brand-up', note: '외인·기관 동반 매수' },
+          { name: '셀트리온', code: '068270', price: '194,200원', change: '+0.4%', changeClass: 'text-brand-up', note: '합병 시너지 가시화' },
+          { name: '유한양행', code: '000100', price: '138,500원', change: '+1.6%', changeClass: 'text-brand-up', note: 'FDA 신약 모멘텀' }
+        ],
+        flows: [
+          { name: '외국인', amount: '+680억', class: 'text-brand-up' },
+          { name: '기관', amount: '+320억', class: 'text-brand-up' },
+          { name: '개인', amount: '-1,000억', class: 'text-brand-danger' }
+        ],
+        drivers: [
+          { label: '미 10년물 국채 금리', val: '3.65% (-0.03%p)', class: 'text-brand-up' },
+          { label: '나스닥 바이오 (NBI)', val: '4,650.2 (+0.75%)', class: 'text-brand-up' },
+          { label: '하반기 FDA 승인', val: '신약 일정 집중', class: 'text-brand-up' }
+        ],
+        checkpoints: [
+          '시장 하락 시 경기 방어주로 자금 쏠림 지속 여부',
+          '삼성바이오로직스 100만 원(황제주) 재탈환 시도',
+          '신약 승인 및 기술수출 마일스톤 공시 점검'
+        ]
+      },
+      finance: {
+        name: '금융 · 지주',
+        pct: '+0.9%',
+        pctClass: 'text-brand-up',
+        weight: '시총 비중 8.5%',
+        desc: '정부의 기업 밸류업 프로그램 수혜와 안정적인 고배당 수익률로 코스피 하락의 안전판 역할을 수행합니다.',
+        stocks: [
+          { name: 'KB금융', code: '105560', price: '86,400원', change: '+1.2%', changeClass: 'text-brand-up', note: '외인 순매수 지속' },
+          { name: '신한지주', code: '055550', price: '54,200원', change: '+0.7%', changeClass: 'text-brand-up', note: '기관 매수 유입' },
+          { name: '하나금융지주', code: '086790', price: '62,800원', change: '+0.8%', changeClass: 'text-brand-up', note: '자사주 소각 기대' }
+        ],
+        flows: [
+          { name: '외국인', amount: '+890억', class: 'text-brand-up' },
+          { name: '기관', amount: '+450억', class: 'text-brand-up' },
+          { name: '개인', amount: '-1,340억', class: 'text-brand-danger' }
+        ],
+        drivers: [
+          { label: '국고채 3년물 금리', val: '2.84% (-0.01%p)', class: 'text-brand-body' },
+          { label: '평균 배당수익률', val: '5.6% 수준', class: 'text-brand-up' },
+          { label: '업종 평균 PBR', val: '0.48배 (저평가)', class: 'text-brand-up' }
+        ],
+        checkpoints: [
+          '외국인의 밸류업 대형 금융주 매수세 유지 확인',
+          '시장 변동성 확대 시 방어적 포트폴리오 비중 활용',
+          '자사주 매입/소각 등 주주환원 공시 일정 체크'
+        ]
+      },
+      defense: {
+        name: '조선 · 방산 · 기계',
+        pct: '+1.6%',
+        pctClass: 'text-brand-up',
+        weight: '시총 비중 7.3%',
+        desc: '신조선가 최고치 경신과 글로벌 방산 수주 확대로 거시 경제 변동성과 무관하게 독자적 실적 랠리를 이어갑니다.',
+        stocks: [
+          { name: '한화에어로스페이스', code: '012450', price: '312,000원', change: '+2.4%', changeClass: 'text-brand-up', note: '외인·기관 동반 매수' },
+          { name: 'HD현대중공업', code: '329180', price: '184,500원', change: '+1.5%', changeClass: 'text-brand-up', note: '선가 상승 수혜' },
+          { name: '현대로템', code: '064350', price: '52,100원', change: '+1.8%', changeClass: 'text-brand-up', note: 'K2 전차 후속 수주' }
+        ],
+        flows: [
+          { name: '외국인', amount: '+1,120억', class: 'text-brand-up' },
+          { name: '기관', amount: '+780억', class: 'text-brand-up' },
+          { name: '개인', amount: '-1,900억', class: 'text-brand-danger' }
+        ],
+        drivers: [
+          { label: '클락슨 신조선가지수', val: '189.2pt (신고가)', class: 'text-brand-up' },
+          { label: '방산 수주 잔고', val: '역대 최대치 경신', class: 'text-brand-up' },
+          { label: 'WTI 유가', val: '$70.25 (+1.15%)', class: 'text-brand-body' }
+        ],
+        checkpoints: [
+          '지수 하락과 무관한 수급 쏠림 지속도 체크',
+          '유럽·중동 지역 후속 수주 낭보 플로우 주시',
+          '단기 급등에 따른 장중 차익실현 물량 소화 점검'
+        ]
+      },
+      auto: {
+        name: '자동차 · 부품',
+        pct: '-0.4%',
+        pctClass: 'text-brand-body',
+        weight: '시총 비중 8.1%',
+        desc: '원·달러 환율 1,345원 돌파에 따른 수출 마진 개선과 글로벌 경기 둔화 우려가 팽팽히 맞서는 보합세입니다.',
+        stocks: [
+          { name: '현대차', code: '005380', price: '238,500원', change: '-0.4%', changeClass: 'text-brand-body', note: '인도법인 IPO 기대' },
+          { name: '기아', code: '000270', price: '102,400원', change: '-0.2%', changeClass: 'text-brand-body', note: '하이브리드 판매 호조' },
+          { name: '현대모비스', code: '012330', price: '215,000원', change: '-0.7%', changeClass: 'text-brand-danger', note: '외인 소폭 매도' }
+        ],
+        flows: [
+          { name: '외국인', amount: '-120억', class: 'text-brand-danger' },
+          { name: '기관', amount: '+90억', class: 'text-brand-up' },
+          { name: '개인', amount: '+30억', class: 'text-brand-up' }
+        ],
+        drivers: [
+          { label: '원·달러 환율', val: '1,345.50 (+4.20)', class: 'text-brand-up' },
+          { label: '북미 HEV 판매 성장률', val: '+14.2% YoY', class: 'text-brand-up' },
+          { label: '인도 증시 상장 추진', val: '하반기 일정 가동', class: 'text-brand-body' }
+        ],
+        checkpoints: [
+          '고환율 지속 시 수출 실적 서프라이즈 가능성',
+          '현대차 인도 법인 상장 승인 및 자금 유입 일정',
+          '하이브리드(HEV) 고수익 차종 판매 비중 유지 여부'
+        ]
+      }
+    };
+
+    // 섹터 상세 열기
+    function openSectorDetail(key) {
+      const data = sectorDetails[key];
+      if (!data) return;
+
+      document.getElementById('detailTitle').innerText = data.name;
+      document.getElementById('detailDesc').innerText = data.desc;
+      document.getElementById('detailWeight').innerText = data.weight;
+      
+      const pctPill = document.getElementById('detailPctPill');
+      pctPill.innerText = data.pct;
+
+      // 1. 대표 종목 리스트
+      const stocksContainer = document.getElementById('detailStocksList');
+      stocksContainer.innerHTML = data.stocks.map(s => `
+        <div class="p-3 rounded-xl glass-card-subtle flex items-center justify-between">
+          <div class="flex flex-col">
+            <div class="flex items-baseline gap-1.5">
+              <span class="text-sm font-semibold text-brand-body">${s.name}</span>
+              <span class="font-en text-[10px] text-brand-muted">${s.code}</span>
+            </div>
+            <span class="text-[11px] text-brand-muted mt-0.5">${s.note}</span>
+          </div>
+          <div class="flex flex-col items-end">
+            <span class="font-en text-sm font-bold text-brand-body">${s.price}</span>
+            <span class="font-en text-xs font-semibold ${s.changeClass}">${s.change}</span>
+          </div>
+        </div>
+      `).join('');
+
+      // 2. 수급 동향
+      const flowsContainer = document.getElementById('detailFlowsList');
+      flowsContainer.innerHTML = data.flows.map(f => `
+        <div class="p-3 rounded-xl glass-card-subtle flex flex-col items-center gap-1 text-center">
+          <span class="text-xs text-brand-muted">${f.name}</span>
+          <span class="font-en text-sm font-bold ${f.class}">${f.amount}</span>
+        </div>
+      `).join('');
+
+      // 3. 연동 핵심 지표
+      const driversContainer = document.getElementById('detailDriversList');
+      driversContainer.innerHTML = data.drivers.map(d => `
+        <div class="p-2.5 rounded-xl glass-card-subtle flex items-center justify-between text-xs">
+          <span class="text-brand-muted">${d.label}</span>
+          <span class="font-en font-semibold ${d.class}">${d.val}</span>
+        </div>
+      `).join('');
+
+      // 4. 장전 체크포인트
+      const checkpointsContainer = document.getElementById('detailCheckpointsList');
+      checkpointsContainer.innerHTML = data.checkpoints.map((cp, idx) => `
+        <li class="flex items-start gap-2">
+          <span class="font-en font-bold text-brand-txt shrink-0">${idx + 1}.</span>
+          <span>${cp}</span>
+        </li>
+      `).join('');
+
+      // 5. 산업별 실시간 토론 초기화
+      currentSectorKey = key;
+      const commTitle = document.getElementById('sectorCommunityTitle');
+      if (commTitle) {
+        commTitle.innerText = data.name + ' 투자자 의견';
+      }
+      renderSectorComments(key);
+
+      // 화면 전환
+      document.getElementById('sectorListView').classList.add('hidden');
+      document.getElementById('sectorDetailView').classList.remove('hidden');
+      document.getElementById('sectorDetailView').classList.add('flex');
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      lucide.createIcons();
+    }
+
+    // 섹터 상세 닫기
+    function closeSectorDetail() {
+      const detailView = document.getElementById('sectorDetailView');
+      const listView = document.getElementById('sectorListView');
+      if (detailView && listView) {
+        detailView.classList.add('hidden');
+        detailView.classList.remove('flex');
+        listView.classList.remove('hidden');
+      }
+      lucide.createIcons();
+    }
+
+    // 기간 필터 토글
+    const sectorData = {
+      today: {
+        semi: '-3.8%', battery: '-1.4%', bio: '+0.5%', finance: '+0.9%', defense: '+1.6%', auto: '-0.4%'
+      },
+      week: {
+        semi: '-5.2%', battery: '-3.1%', bio: '+2.4%', finance: '+3.1%', defense: '+4.8%', auto: '+0.2%'
+      },
+      month: {
+        semi: '-8.4%', battery: '-6.5%', bio: '+5.7%', finance: '+6.2%', defense: '+11.4%', auto: '-1.8%'
+      }
+    };
+
+    function changeSectorPeriod(period, btn) {
+      document.querySelectorAll('.sector-period-btn').forEach(b => {
+        b.className = 'sector-period-btn flex-1 py-2 text-xs font-medium text-brand-muted hover:text-brand-txt transition';
+      });
+      btn.className = 'sector-period-btn flex-1 py-2 text-xs font-semibold rounded-xl bg-brand-txt text-white shadow-sm transition';
+
+      const data = sectorData[period];
+      if (data) {
+        document.getElementById('pct-semi').innerText = data.semi;
+        document.getElementById('pct-battery').innerText = data.battery;
+        document.getElementById('pct-bio').innerText = data.bio;
+        document.getElementById('pct-finance').innerText = data.finance;
+        document.getElementById('pct-defense').innerText = data.defense;
+        document.getElementById('pct-auto').innerText = data.auto;
+      }
+    }
+
+    // 투표 기능
+    let hasVoted = false;
+    let upVotes = 540;
+    let downVotes = 880;
+
+    function voteAction(type) {
+      if (hasVoted) return;
+      hasVoted = true;
+
+      if (type === 'up') upVotes++;
+      else downVotes++;
+
+      const total = upVotes + downVotes;
+      const upPct = Math.round((upVotes / total) * 100);
+      const downPct = 100 - upPct;
+
+      document.getElementById('voteUpPercent').innerText = upPct + '%';
+      document.getElementById('voteDownPercent').innerText = downPct + '%';
+      document.getElementById('voteTotalText').innerText = total.toLocaleString() + '명 참여';
+
+      const btnUp = document.getElementById('btnVoteUp');
+      const btnDown = document.getElementById('btnVoteDown');
+
+      if (type === 'up') {
+        btnUp.className = "btn-press py-3.5 px-4 rounded-xl border border-brand-txt bg-brand-txt text-white transition flex items-center justify-between shadow-sm";
+        btnUp.querySelector('i')?.classList.remove('text-brand-txt');
+        btnUp.querySelector('i')?.classList.add('text-white');
+        btnUp.querySelector('span.text-brand-txt')?.classList.remove('text-brand-txt');
+        btnUp.querySelector('span.text-brand-txt')?.classList.add('text-white');
+        btnDown.classList.add('opacity-40', 'pointer-events-none');
+      } else {
+        btnDown.className = "btn-press py-3.5 px-4 rounded-xl border border-brand-txt bg-brand-txt text-white transition flex items-center justify-between shadow-sm";
+        btnDown.querySelector('i')?.classList.remove('text-brand-danger');
+        btnDown.querySelector('i')?.classList.add('text-white');
+        btnDown.querySelector('span.text-brand-danger')?.classList.remove('text-brand-danger');
+        btnDown.querySelector('span.text-brand-danger')?.classList.add('text-white');
+        btnUp.classList.add('opacity-40', 'pointer-events-none');
+      }
+
+      document.getElementById('voteConfirmedMsg').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    // ==============================================
+    // 각 산업별 커뮤니티 데이터 및 실시간 의견 기능
+    // ==============================================
+    let currentSectorKey = 'semi';
+
+    const sectorComments = {
+      semi: [
+        { author: '반도체홀더', time: '10분 전', text: '필라델피아 반도체 -5.9% 급락 여파로 갭하락 출발하겠지만, 오전 10시 이후 외국인 선물 수급 돌아오면 기술적 반등 여지 있습니다.' },
+        { author: '투자자 S', time: '35분 전', text: '삼성전자 64,000원 지지선 방어가 오늘 코스피 2,500선 사수의 최대 관건이 될 것 같습니다.' },
+        { author: '데이인베스터', time: '1시간 전', text: 'SK하이닉스는 엔비디아 실적 우려 해소 전까지는 보수적 분할 매수로 접근 권장합니다.' }
+      ],
+      battery: [
+        { author: '배터리러버', time: '8분 전', text: 'LG에너지솔루션 수주 잔고는 탄탄한데 전기차 캐즘 우려로 단기 변동성은 이어질 듯하네요.' },
+        { author: '포스코주주', time: '40분 전', text: '포스코홀딩스 35만원 이하는 PBR 기준 매력적인 구간입니다. 중장기 적립식으로 모아갑니다.' },
+        { author: '양극재트레이더', time: '2시간 전', text: '코스닥 2차전지 소재주는 반등 시 비중 조절하면서 바닥 다지기 확인 필요합니다.' }
+      ],
+      bio: [
+        { author: '바이오매니아', time: '15분 전', text: '삼성바이오로직스 4공장 가동률 상승으로 3분기 어닝 서프라이즈 기대됩니다.' },
+        { author: '알테오젠주주', time: '50분 전', text: '피하주사 제형 변경 플랫폼 기술수출 추가 계약 모멘텀 살아있어서 조정 시마다 담고 있어요.' },
+        { author: '금리수혜론자', time: '1시간 전', text: '미국 9월 FOMC 금리 인하 확정 시 성장주 중 바이오 섹터가 가장 먼저 탄력받을 가능성 높습니다.' }
+      ],
+      finance: [
+        { author: '밸류업추종', time: '20분 전', text: 'KB금융 배당수익률 5% 넘고 자사주 매입 소각 효과로 하락장에서도 든든한 방어주 역할 하네요.' },
+        { author: '배당투자자', time: '1시간 전', text: '신한지주랑 메리츠금융 분할 보유 중인데 밸류업 지수 발표 전까지는 계속 보유 전략 유지합니다.' },
+        { author: '금융애널', time: '3시간 전', text: '기준금리 인하로 순이자마진(NIM) 축소는 있겠으나 비이자이익 확대와 주주환원율이 주가 방어할 듯.' }
+      ],
+      defense: [
+        { author: 'K방산최고', time: '5분 전', text: '한화에어로스페이스 루마니아 K9 수출 본계약 기대감으로 기관 수급 꾸준히 유입 중입니다.' },
+        { author: '원전수출팀', time: '28분 전', text: '체코 원전 본계약 일정까지 두산에너빌리티는 조정 시 분할 매수 유효하다고 봅니다.' },
+        { author: '전력인프라', time: '1시간 전', text: 'HD현대일렉트릭 미국 변압기 수주 잔고가 워낙 꽉 차 있어서 실적 가시성이 가장 높습니다.' }
+      ],
+      auto: [
+        { author: '모빌리티매니아', time: '18분 전', text: '현대차 인도법인 상장 모멘텀 살아있고 배당 매력도 있어서 23만원 선은 강력한 지지선.' },
+        { author: '기아주주', time: '45분 전', text: '기아는 영업이익률 10%대 유지 중이라 밸류에이션 기준으로는 코스피 대장주 중 가장 저평가 상태.' },
+        { author: '수출환율체크', time: '2시간 전', text: '원달러 환율 1,345원선이라 완성차 북미/유럽 수출 마진 방어에 우호적인 환경이네요.' }
+      ]
+    };
+
+    function renderSectorComments(key) {
+      const list = document.getElementById('sectorCommentList');
+      const countBadge = document.getElementById('sectorCommentCount');
+      const comments = sectorComments[key] || [];
+
+      if (countBadge) {
+        countBadge.innerText = comments.length;
+      }
+
+      if (!list) return;
+
+      if (comments.length === 0) {
+        list.innerHTML = `
+          <div class="p-4 rounded-xl glass-card-subtle text-center text-xs text-brand-muted">
+            아직 등록된 의견이 없습니다. 첫 번째 의견을 남겨보세요!
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = comments.map(c => `
+        <div class="p-3.5 rounded-xl glass-card-subtle flex flex-col gap-1 transition-all">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-semibold text-brand-body">${escapeHtml(c.author)}</span>
+            <span class="text-[11px] text-brand-muted">${escapeHtml(c.time)}</span>
+          </div>
+          <p class="text-xs sm:text-sm text-[#334638] leading-relaxed">
+            ${escapeHtml(c.text)}
+          </p>
+        </div>
+      `).join('');
+    }
+
+    function addSectorComment(event) {
+      event.preventDefault();
+      const authorInput = document.getElementById('sectorAuthorInput');
+      const textInput = document.getElementById('sectorTextInput');
+      const author = authorInput.value.trim() || '투자자';
+      const text = textInput.value.trim();
+
+      if (!text) return;
+
+      if (!sectorComments[currentSectorKey]) {
+        sectorComments[currentSectorKey] = [];
+      }
+
+      sectorComments[currentSectorKey].unshift({
+        author: author,
+        time: '방금 전',
+        text: text
+      });
+
+      renderSectorComments(currentSectorKey);
+      textInput.value = '';
+      authorInput.value = '';
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>'"]/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+      );
+    }
+
+    // 카드뉴스 드래그 및 2선 지수 차트 인터랙션 초기화
+    document.addEventListener('DOMContentLoaded', () => {
+      initCardNewsDrag();
+      initScenarioChart();
+    });
+    initCardNewsDrag();
+    initScenarioChart();
+  </script>
+</body>
+</html>
