@@ -929,19 +929,43 @@
           <span id="detailWeight" class="font-en text-xs text-brand-muted font-medium">시총 비중 28.4%</span>
         </div>
 
-        <!-- 섹터 상세 히어로 카드 -->
-        <section class="studio-grd text-white rounded-[24px] p-6 shadow-[0_16px_36px_-8px_rgba(35,78,53,0.28)] flex flex-col gap-3 border border-white/20">
+        <!-- 섹터 상세 히어로 카드 (초대형 등락률 지표) -->
+        <section class="studio-grd text-white rounded-[24px] p-6 sm:p-7 shadow-[0_16px_36px_-8px_rgba(35,78,53,0.28)] flex flex-col gap-4 border border-white/20 relative overflow-hidden">
           <div class="flex items-center justify-between border-b border-white/15 pb-2.5">
-            <span class="text-xs font-medium text-white/80">산업 분석</span>
-            <span id="detailPctPill" class="font-en text-xs font-bold text-white px-2.5 py-0.5 rounded-md bg-white/20">-3.8%</span>
+            <span class="text-xs font-medium text-white/80 tracking-wide flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-white/70"></span>
+              <span>산업 분석 리포트</span>
+            </span>
+            <span id="detailDirectionLabel" class="text-xs font-semibold text-[#FFB8AD] flex items-center gap-1">
+              <span>하락 출발 예상</span>
+              <i data-lucide="trending-down" class="w-3.5 h-3.5"></i>
+            </span>
           </div>
 
-          <h2 id="detailTitle" class="text-2xl font-bold tracking-tight text-white">
-            반도체 · IT
-          </h2>
-          <p id="detailDesc" class="text-xs sm:text-sm text-white/85 leading-relaxed font-light">
-            미국 필라델피아 반도체 지수 급락(-5.9%) 및 엔비디아 조정 여파로 하락 출발 유력.
-          </p>
+          <!-- 제목 & 초대형 등락률 지표 (3.8% 강조) -->
+          <div class="flex items-end justify-between gap-3 pt-0.5">
+            <div class="flex flex-col gap-1">
+              <span class="text-[11px] text-white/70">산업 분류</span>
+              <h2 id="detailTitle" class="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                반도체 · IT
+              </h2>
+            </div>
+
+            <!-- 아주 크게 강조된 핵심 수치 지표 -->
+            <div class="flex flex-col items-end">
+              <span class="text-[11px] text-white/75 font-medium mb-0.5">예상 등락률</span>
+              <span id="detailPctPill" class="font-en text-4xl sm:text-5xl font-black tracking-tight text-[#FFB8AD] leading-none drop-shadow-sm">
+                -3.8%
+              </span>
+            </div>
+          </div>
+
+          <!-- 요약 설명 문구 박스 -->
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-3.5 sm:p-4 border border-white/10 mt-0.5">
+            <p id="detailDesc" class="text-xs sm:text-sm text-white/90 leading-relaxed font-light">
+              미국 필라델피아 반도체 지수 급락(-5.9%) 및 엔비디아 조정 여파로 하락 출발 유력.
+            </p>
+          </div>
         </section>
 
         <!-- 1. 핵심 대장주 현재가/예상가 -->
@@ -1743,7 +1767,24 @@
       document.getElementById('detailWeight').innerText = data.weight;
       
       const pctPill = document.getElementById('detailPctPill');
-      pctPill.innerText = data.pct;
+      const dirLabel = document.getElementById('detailDirectionLabel');
+      const isUp = data.pct.startsWith('+');
+
+      if (pctPill) {
+        pctPill.innerText = data.pct;
+        pctPill.className = isUp 
+          ? 'font-en text-4xl sm:text-5xl font-black tracking-tight text-[#A7F3D0] leading-none drop-shadow-sm'
+          : 'font-en text-4xl sm:text-5xl font-black tracking-tight text-[#FFB8AD] leading-none drop-shadow-sm';
+      }
+
+      if (dirLabel) {
+        dirLabel.className = isUp
+          ? 'text-xs font-semibold text-[#A7F3D0] flex items-center gap-1'
+          : 'text-xs font-semibold text-[#FFB8AD] flex items-center gap-1';
+        dirLabel.innerHTML = isUp
+          ? '<span>상승 우세 예상</span><i data-lucide="trending-up" class="w-3.5 h-3.5"></i>'
+          : '<span>하락 출발 예상</span><i data-lucide="trending-down" class="w-3.5 h-3.5"></i>';
+      }
 
       // 1. 대표 종목 리스트
       const stocksContainer = document.getElementById('detailStocksList');
