@@ -258,18 +258,18 @@
           </div>
         </div>
 
-        <!-- 당일 지수 그래프: 예상 시나리오선 vs 실제 그래프 (2개의 선) -->
-        <div class="bg-black/20 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/15 flex flex-col gap-3">
+        <!-- 당일 지수 그래프: 예상 시나리오선 vs 실제 그래프 (대형 프로페셔널 차트) -->
+        <div class="bg-black/25 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/15 flex flex-col gap-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
           
           <!-- 상단 헤더 & 2개 선 범례 (Legend) -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-white/10 pb-3">
             <div class="flex items-center gap-2">
-              <span class="text-xs font-semibold text-white tracking-tight">당일 지수 경로 비교</span>
-              <span id="chartLiveBadge" class="font-en text-[10px] px-2 py-0.5 rounded-full bg-white/15 text-white/90">실시간 반영</span>
+              <span class="text-sm font-semibold text-white tracking-tight">코스피 당일 지수 경로 비교</span>
+              <span id="chartLiveBadge" class="font-en text-[10px] px-2 py-0.5 rounded-full bg-white/15 text-white/90 font-medium">실시간 연동</span>
             </div>
             
             <!-- 두 개의 선 범례 (Legend) -->
-            <div class="flex items-center gap-3.5 text-xs font-en">
+            <div class="flex items-center gap-4 text-xs font-en">
               <!-- 선 1: 실제 그래프 -->
               <div class="flex items-center gap-1.5">
                 <span class="w-4 h-0.5 bg-white rounded-full inline-block shadow-sm"></span>
@@ -283,109 +283,121 @@
             </div>
           </div>
 
+          <!-- 조작 툴바: 단위 세그먼트(15분/30분/1시간/전체) + 줌/팬 컨트롤 바 -->
+          <div class="flex flex-wrap items-center justify-between gap-2 bg-white/5 p-1.5 rounded-xl border border-white/10">
+            <!-- 단위(Timeframe) 세그먼트 -->
+            <div class="flex items-center gap-1" id="chartIntervalTabs">
+              <button type="button" onclick="setChartInterval('15m', this)" class="chart-interval-btn px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white text-brand-txt shadow-sm transition">15분</button>
+              <button type="button" onclick="setChartInterval('30m', this)" class="chart-interval-btn px-2.5 py-1 text-[11px] font-medium text-white/70 hover:text-white rounded-lg transition">30분</button>
+              <button type="button" onclick="setChartInterval('1h', this)" class="chart-interval-btn px-2.5 py-1 text-[11px] font-medium text-white/70 hover:text-white rounded-lg transition">1시간</button>
+              <button type="button" onclick="setChartInterval('all', this)" class="chart-interval-btn px-2.5 py-1 text-[11px] font-medium text-white/70 hover:text-white rounded-lg transition">당일전체</button>
+            </div>
+
+            <!-- 줌 조작 & 배율 인디케이터 -->
+            <div class="flex items-center gap-1.5 text-xs font-en">
+              <span class="text-[10px] text-white/50 hidden sm:inline">휠/핀치 제스처 확대</span>
+              <button type="button" onclick="adjustChartZoom(-0.25)" class="w-6 h-6 rounded-md bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition leading-none cursor-pointer" title="축소">-</button>
+              <span id="chartZoomBadge" class="text-[11px] font-semibold text-white/90 px-1.5 min-w-[32px] text-center">1.0x</span>
+              <button type="button" onclick="adjustChartZoom(0.25)" class="w-6 h-6 rounded-md bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition leading-none cursor-pointer" title="확대">+</button>
+              <button type="button" onclick="resetChartZoom()" class="px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-[10px] font-sans transition cursor-pointer">초기화</button>
+            </div>
+          </div>
+
           <!-- 인터랙티브 상태 바 / 툴팁 -->
           <div id="chartTooltip" class="flex items-center justify-between text-[11px] text-white/80 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5 transition-all">
             <span>차트를 터치하거나 마우스를 올리면 시점별 수치가 표시됩니다.</span>
             <span class="font-en text-white font-medium">현재 2,522.10p (-1.88%)</span>
           </div>
 
-          <!-- 2선 주식 SVG 그래프 -->
-          <div class="relative w-full pt-1">
-            <svg id="scenarioChartSvg" viewBox="0 0 500 165" class="w-full h-auto select-none overflow-visible cursor-crosshair">
+          <!-- 2선 주식 SVG 그래프 컨테이너 (대형 확대 & 휠/핀치/드래그 제스처 캔버스) -->
+          <div id="scenarioChartWrapper" class="relative w-full overflow-hidden rounded-xl bg-black/10 select-none touch-none cursor-grab active:cursor-grabbing" style="min-height: 250px;">
+            <svg id="scenarioChartSvg" viewBox="0 0 600 270" class="w-full h-auto select-none overflow-visible block" style="pointer-events: auto;">
               <defs>
-                <!-- 실제 그래프 영역 그라데이션 -->
                 <linearGradient id="gradActual" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22" />
-                  <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.28" />
+                  <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0" />
                 </linearGradient>
-                <!-- 예상 시나리오선 영역 그라데이션 -->
                 <linearGradient id="gradScenario" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#FFB8AD" stop-opacity="0.10" />
-                  <stop offset="100%" stop-color="#FFB8AD" stop-opacity="0" />
+                  <stop offset="0%" stop-color="#FFB8AD" stop-opacity="0.16" />
+                  <stop offset="100%" stop-color="#FFB8AD" stop-opacity="0.0" />
                 </linearGradient>
+                <!-- 클리핑 패스 for 차트 데이터 라인 -->
+                <clipPath id="chartPlotArea">
+                  <rect x="45" y="15" width="495" height="215" rx="4" />
+                </clipPath>
               </defs>
 
               <!-- 배경 수평 기준선 & 가격 라벨 -->
-              <g class="font-en text-[9px] fill-white/40">
+              <g id="chartGridGroup" class="font-en text-[10px] fill-white/45">
                 <!-- 2,580선 -->
-                <line x1="45" y1="25" x2="465" y2="25" stroke="rgba(255,255,255,0.12)" stroke-dasharray="3,3" />
-                <text x="472" y="28" fill="rgba(255,255,255,0.6)">2,580</text>
+                <line x1="45" y1="35" x2="540" y2="35" stroke="rgba(255,255,255,0.12)" stroke-dasharray="3,3" />
+                <text x="548" y="38" fill="rgba(255,255,255,0.65)">2,580</text>
+
+                <!-- 2,560선 -->
+                <line x1="45" y1="80" x2="540" y2="80" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3" />
+                <text x="548" y="83" fill="rgba(255,255,255,0.55)">2,560</text>
 
                 <!-- 2,540선 (중심선) -->
-                <line x1="45" y1="82" x2="465" y2="82" stroke="rgba(255,255,255,0.12)" stroke-dasharray="3,3" />
-                <text x="472" y="85" fill="rgba(255,255,255,0.6)">2,540</text>
+                <line x1="45" y1="125" x2="540" y2="125" stroke="rgba(255,255,255,0.12)" stroke-dasharray="3,3" />
+                <text x="548" y="128" fill="rgba(255,255,255,0.65)">2,540</text>
 
-                <!-- 2,510선 (하단 지지선) -->
-                <line x1="45" y1="126" x2="465" y2="126" stroke="rgba(255,255,255,0.12)" stroke-dasharray="3,3" />
-                <text x="472" y="129" fill="rgba(255,255,255,0.6)">2,510</text>
+                <!-- 2,520선 -->
+                <line x1="45" y1="170" x2="540" y2="170" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3" />
+                <text x="548" y="173" fill="rgba(255,255,255,0.55)">2,520</text>
+
+                <!-- 2,500선 (하단 지지선) -->
+                <line x1="45" y1="215" x2="540" y2="215" stroke="rgba(255,255,255,0.12)" stroke-dasharray="3,3" />
+                <text x="548" y="218" fill="rgba(255,255,255,0.65)">2,500</text>
               </g>
 
-              <!-- [선 1 영역] 예상 시나리오 영역 그라데이션 채우기 -->
-              <path
-                d="M 45 71 C 80.0 71.0, 80.0 104.0, 115 104 C 137.5 104.0, 137.5 123.0, 160 123 C 207.5 123.0, 207.5 105.0, 255 105 C 307.5 105.0, 307.5 92.0, 360 92 C 412.5 92.0, 412.5 85.0, 465 85 L 465 140 L 45 140 Z"
-                fill="url(#gradScenario)"
-              />
+              <!-- 차트 플롯 영역 (클리핑) -->
+              <g clip-path="url(#chartPlotArea)">
+                <!-- [선 1 영역] 예상 시나리오 그라데이션 채우기 -->
+                <path id="pathScenarioArea" d="" fill="url(#gradScenario)" />
+                <!-- [선 1] 예상 시나리오선 (점선) -->
+                <path id="pathScenario" d="" fill="none" stroke="#FFB8AD" stroke-width="2.5" stroke-dasharray="6,4" stroke-linecap="round" />
 
-              <!-- [선 1] 예상 시나리오선 (점선/Dashed Line) -->
-              <path
-                id="pathScenario"
-                d="M 45 71 C 80.0 71.0, 80.0 104.0, 115 104 C 137.5 104.0, 137.5 123.0, 160 123 C 207.5 123.0, 207.5 105.0, 255 105 C 307.5 105.0, 307.5 92.0, 360 92 C 412.5 92.0, 412.5 85.0, 465 85"
-                fill="none"
-                stroke="#FFB8AD"
-                stroke-width="2.5"
-                stroke-dasharray="6,4"
-                stroke-linecap="round"
-              />
+                <!-- [선 2 영역] 실제 그래프 그라데이션 채우기 -->
+                <path id="pathActualArea" d="" fill="url(#gradActual)" />
+                <!-- [선 2] 실제 그래프 (실선) -->
+                <path id="pathActual" d="" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
 
-              <!-- [선 2 영역] 실제 그래프 영역 그라데이션 채우기 -->
-              <path
-                d="M 45 73 C 62.5 73.0, 62.5 85.0, 80 85 C 97.5 85.0, 97.5 99.0, 115 99 C 127.5 99.0, 127.5 117.0, 140 117 C 147.5 117.0, 147.5 119.0, 155 119 C 165.0 119.0, 165.0 108.0, 175 108 L 175 140 L 45 140 Z"
-                fill="url(#gradActual)"
-              />
+                <!-- 현재가 실시간 펄스 비콘 -->
+                <g id="liveActualMarker" transform="translate(-100,-100)">
+                  <circle r="9" fill="rgba(255,255,255,0.3)" class="status-pulse" />
+                  <circle r="4.5" fill="#FFFFFF" stroke="#234E35" stroke-width="2" />
+                </g>
 
-              <!-- [선 2] 실제 그래프 (실선/Solid Line) -->
-              <path
-                id="pathActual"
-                d="M 45 73 C 62.5 73.0, 62.5 85.0, 80 85 C 97.5 85.0, 97.5 99.0, 115 99 C 127.5 99.0, 127.5 117.0, 140 117 C 147.5 117.0, 147.5 119.0, 155 119 C 165.0 119.0, 165.0 108.0, 175 108"
-                fill="none"
-                stroke="#FFFFFF"
-                stroke-width="3"
-                stroke-linecap="round"
-              />
+                <!-- 시나리오 마감 예측 포인트 마커 -->
+                <g id="scenarioEndMarker" transform="translate(-100,-100)">
+                  <circle r="4.5" fill="#FFB8AD" stroke="#234E35" stroke-width="2" />
+                </g>
 
-              <!-- 현재가 실시간 펄스 비콘 (실제 그래프 끝 지점) -->
-              <g transform="translate(175, 108)">
-                <circle r="8" fill="rgba(255,255,255,0.3)" class="status-pulse" />
-                <circle r="4" fill="#FFFFFF" stroke="#234E35" stroke-width="1.5" />
+                <!-- 상호작용 크로스헤어 세로선 & 포인터 -->
+                <g id="chartCrosshair" class="hidden">
+                  <line id="crosshairLine" x1="0" y1="20" x2="0" y2="225" stroke="rgba(255,255,255,0.4)" stroke-dasharray="3,3" />
+                  <circle id="crosshairDotScenario" r="5" fill="#FFB8AD" stroke="#FFFFFF" stroke-width="2" />
+                  <circle id="crosshairDotActual" r="5" fill="#FFFFFF" stroke="#234E35" stroke-width="2" />
+                </g>
               </g>
 
-              <!-- 시나리오 마감 예측 포인트 마커 (예상 시나리오 끝 지점) -->
-              <g transform="translate(465, 85)">
-                <circle r="4" fill="#FFB8AD" stroke="#234E35" stroke-width="1.5" />
-              </g>
-
-              <!-- 상호작용 크로스헤어 세로선 & 포인터 (호버 시 표시) -->
-              <g id="chartCrosshair" class="hidden">
-                <line id="crosshairLine" x1="0" y1="20" x2="0" y2="140" stroke="rgba(255,255,255,0.4)" stroke-dasharray="2,2" />
-                <circle id="crosshairDotScenario" r="4.5" fill="#FFB8AD" stroke="#FFFFFF" stroke-width="1.5" />
-                <circle id="crosshairDotActual" r="4.5" fill="#FFFFFF" stroke="#234E35" stroke-width="1.5" />
-              </g>
-
-              <!-- X축 시간 레이블 -->
-              <g class="font-en text-[10px] fill-white/60">
-                <text x="45" y="155" text-anchor="middle">09:00</text>
-                <text x="150" y="155" text-anchor="middle">10:30</text>
-                <text x="255" y="155" text-anchor="middle">12:00</text>
-                <text x="360" y="155" text-anchor="middle">13:30</text>
-                <text x="465" y="155" text-anchor="middle">15:30</text>
+              <!-- X축 시간 레이블 컨테이너 -->
+              <g id="chartTimeLabels" class="font-en text-[11px] fill-white/65 font-medium">
               </g>
             </svg>
           </div>
 
-          <!-- 하단 상태 요약 문구 -->
-          <div class="flex items-center justify-between pt-1 border-t border-white/10 text-[11px] text-white/70">
-            <span>시나리오 일치도 <strong class="text-white font-bold font-en">96.8%</strong></span>
-            <span class="text-white/60">오전 10:30 저점 통과 후 반등 흐름 추종</span>
+          <!-- 제스처 가이드 및 하단 상태 요약 문구 -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-1.5 border-t border-white/10 text-[11px] text-white/70">
+            <div class="flex items-center gap-1.5">
+              <span>시나리오 일치도 <strong class="text-white font-bold font-en">96.8%</strong></span>
+              <span class="text-white/40">·</span>
+              <span class="text-white/80">오전 10:30 저점 통과 후 반등 흐름 추종</span>
+            </div>
+            <div class="flex items-center gap-1 text-[10px] text-white/50">
+              <i data-lucide="info" class="w-3 h-3"></i>
+              <span>마우스 휠 스크롤 또는 두 손가락 핀치로 자유롭게 확대/축소</span>
+            </div>
           </div>
 
         </div>
@@ -1515,8 +1527,220 @@
       }
     }
 
-    // 당일 지수 그래프 (예상 시나리오선 vs 실제 그래프 2선) 상호작용
-    function initScenarioChart() {
+    // ==========================================
+    // 당일 지수 그래프 (대형화 + 15m/30m/1h/전체 단위 + 휠/핀치 줌 & 팬 인터랙션)
+    // ==========================================
+    let currentChartInterval = '15m';
+    let chartZoomLevel = 1.0;
+    let chartTMin = 0.0;
+    let chartIsInitialized = false;
+    let currentRenderedPoints = [];
+
+    const scenarioDatasets = {
+      '15m': [
+        { time: '09:00', fullTime: '09:00 (개장)', act: 2546.50, scen: 2548.00, hasAct: true },
+        { time: '09:15', fullTime: '09:15', act: 2542.10, scen: 2543.00, hasAct: true },
+        { time: '09:30', fullTime: '09:30', act: 2538.00, scen: 2536.00, hasAct: true },
+        { time: '09:45', fullTime: '09:45', act: 2533.20, scen: 2530.00, hasAct: true },
+        { time: '10:00', fullTime: '10:00', act: 2528.50, scen: 2525.00, hasAct: true },
+        { time: '10:15', fullTime: '10:15', act: 2520.40, scen: 2519.00, hasAct: true },
+        { time: '10:30', fullTime: '10:30 (저점확인)', act: 2514.80, scen: 2515.00, hasAct: true },
+        { time: '10:45', fullTime: '10:45 (현재가)', act: 2522.10, scen: 2518.00, hasAct: true },
+        { time: '11:00', fullTime: '11:00 (예상)', act: null, scen: 2521.50, hasAct: false },
+        { time: '11:15', fullTime: '11:15 (예상)', act: null, scen: 2523.80, hasAct: false },
+        { time: '11:30', fullTime: '11:30 (예상)', act: null, scen: 2525.00, hasAct: false },
+        { time: '11:45', fullTime: '11:45 (예상)', act: null, scen: 2526.50, hasAct: false },
+        { time: '12:00', fullTime: '12:00 (예상)', act: null, scen: 2528.00, hasAct: false },
+        { time: '12:30', fullTime: '12:30 (예상)', act: null, scen: 2531.00, hasAct: false },
+        { time: '13:00', fullTime: '13:00 (예상)', act: null, scen: 2533.50, hasAct: false },
+        { time: '13:30', fullTime: '13:30 (예상)', act: null, scen: 2535.50, hasAct: false },
+        { time: '14:00', fullTime: '14:00 (예상)', act: null, scen: 2536.80, hasAct: false },
+        { time: '14:30', fullTime: '14:30 (예상)', act: null, scen: 2537.50, hasAct: false },
+        { time: '15:00', fullTime: '15:00 (예상)', act: null, scen: 2538.20, hasAct: false },
+        { time: '15:30', fullTime: '15:30 (마감예상)', act: null, scen: 2538.00, hasAct: false }
+      ],
+      '30m': [
+        { time: '09:00', fullTime: '09:00 (개장)', act: 2546.50, scen: 2548.00, hasAct: true },
+        { time: '09:30', fullTime: '09:30', act: 2538.00, scen: 2536.00, hasAct: true },
+        { time: '10:00', fullTime: '10:00', act: 2528.50, scen: 2525.00, hasAct: true },
+        { time: '10:30', fullTime: '10:30 (저점확인)', act: 2514.80, scen: 2515.00, hasAct: true },
+        { time: '10:45', fullTime: '10:45 (현재가)', act: 2522.10, scen: 2518.00, hasAct: true },
+        { time: '11:00', fullTime: '11:00 (예상)', act: null, scen: 2521.50, hasAct: false },
+        { time: '11:30', fullTime: '11:30 (예상)', act: null, scen: 2525.00, hasAct: false },
+        { time: '12:00', fullTime: '12:00 (예상)', act: null, scen: 2528.00, hasAct: false },
+        { time: '12:30', fullTime: '12:30 (예상)', act: null, scen: 2531.00, hasAct: false },
+        { time: '13:00', fullTime: '13:00 (예상)', act: null, scen: 2533.50, hasAct: false },
+        { time: '13:30', fullTime: '13:30 (예상)', act: null, scen: 2535.50, hasAct: false },
+        { time: '14:00', fullTime: '14:00 (예상)', act: null, scen: 2536.80, hasAct: false },
+        { time: '14:30', fullTime: '14:30 (예상)', act: null, scen: 2537.50, hasAct: false },
+        { time: '15:00', fullTime: '15:00 (예상)', act: null, scen: 2538.20, hasAct: false },
+        { time: '15:30', fullTime: '15:30 (마감예상)', act: null, scen: 2538.00, hasAct: false }
+      ],
+      '1h': [
+        { time: '09:00', fullTime: '09:00 (개장)', act: 2546.50, scen: 2548.00, hasAct: true },
+        { time: '10:00', fullTime: '10:00', act: 2528.50, scen: 2525.00, hasAct: true },
+        { time: '10:45', fullTime: '10:45 (현재가)', act: 2522.10, scen: 2518.00, hasAct: true },
+        { time: '11:00', fullTime: '11:00 (예상)', act: null, scen: 2521.50, hasAct: false },
+        { time: '12:00', fullTime: '12:00 (예상)', act: null, scen: 2528.00, hasAct: false },
+        { time: '13:00', fullTime: '13:00 (예상)', act: null, scen: 2533.50, hasAct: false },
+        { time: '14:00', fullTime: '14:00 (예상)', act: null, scen: 2536.80, hasAct: false },
+        { time: '15:00', fullTime: '15:00 (예상)', act: null, scen: 2538.20, hasAct: false },
+        { time: '15:30', fullTime: '15:30 (마감예상)', act: null, scen: 2538.00, hasAct: false }
+      ],
+      'all': [
+        { time: '09:00', fullTime: '09:00 (개장)', act: 2546.50, scen: 2548.00, hasAct: true },
+        { time: '09:45', fullTime: '09:45', act: 2533.20, scen: 2530.00, hasAct: true },
+        { time: '10:30', fullTime: '10:30 (저점확인)', act: 2514.80, scen: 2515.00, hasAct: true },
+        { time: '10:45', fullTime: '10:45 (현재가)', act: 2522.10, scen: 2518.00, hasAct: true },
+        { time: '12:00', fullTime: '12:00 (예상)', act: null, scen: 2528.00, hasAct: false },
+        { time: '13:30', fullTime: '13:30 (예상)', act: null, scen: 2535.50, hasAct: false },
+        { time: '14:30', fullTime: '14:30 (예상)', act: null, scen: 2537.50, hasAct: false },
+        { time: '15:30', fullTime: '15:30 (마감예상)', act: null, scen: 2538.00, hasAct: false }
+      ]
+    };
+
+    function priceToY(price) {
+      // 2580 -> 35, 2500 -> 215 (plotHeight = 180, priceSpan = 80)
+      const minP = 2500, maxP = 2580;
+      const clamped = Math.max(minP, Math.min(maxP, price));
+      return 215 - ((clamped - minP) / (maxP - minP)) * 180;
+    }
+
+    function progressToX(t) {
+      // t is normalized time [0, 1]
+      const span = 1 / chartZoomLevel;
+      const rel = (t - chartTMin) / span;
+      return 45 + rel * 495;
+    }
+
+    function getSmoothSvgPath(points) {
+      if (!points || points.length === 0) return '';
+      if (points.length === 1) return `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+      let d = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+      for (let i = 0; i < points.length - 1; i++) {
+        const p0 = i > 0 ? points[i - 1] : points[i];
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        const p3 = i < points.length - 2 ? points[i + 2] : p2;
+        const cp1x = p1.x + (p2.x - p0.x) / 6;
+        const cp1y = p1.y + (p2.y - p0.y) / 6;
+        const cp2x = p2.x - (p3.x - p1.x) / 6;
+        const cp2y = p2.y - (p3.y - p1.y) / 6;
+        d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+      }
+      return d;
+    }
+
+    function getAreaSvgPath(lineD, points, baselineY = 225) {
+      if (!points || points.length === 0 || !lineD) return '';
+      const firstX = points[0].x.toFixed(1);
+      const lastX = points[points.length - 1].x.toFixed(1);
+      return `${lineD} L ${lastX} ${baselineY} L ${firstX} ${baselineY} Z`;
+    }
+
+    function renderScenarioChart() {
+      const svg = document.getElementById('scenarioChartSvg');
+      if (!svg) return;
+
+      const raw = scenarioDatasets[currentChartInterval] || scenarioDatasets['15m'];
+      const n = raw.length;
+
+      // Map raw data points to screen coordinates
+      currentRenderedPoints = raw.map((pt, idx) => {
+        const t = n > 1 ? idx / (n - 1) : 0;
+        const x = progressToX(t);
+        const scenY = priceToY(pt.scen);
+        const actY = pt.hasAct && pt.act !== null ? priceToY(pt.act) : null;
+        return { x, scenY, actY, raw: pt };
+      });
+
+      const scenarioPts = currentRenderedPoints.map(p => ({ x: p.x, y: p.scenY }));
+      const actualPts = currentRenderedPoints.filter(p => p.raw.hasAct && p.actY !== null).map(p => ({ x: p.x, y: p.actY }));
+
+      // 1. 예상 시나리오 선 및 영역 렌더링
+      const pathScenario = document.getElementById('pathScenario');
+      const pathScenarioArea = document.getElementById('pathScenarioArea');
+      const scenLineD = getSmoothSvgPath(scenarioPts);
+      if (pathScenario) pathScenario.setAttribute('d', scenLineD);
+      if (pathScenarioArea) pathScenarioArea.setAttribute('d', getAreaSvgPath(scenLineD, scenarioPts, 225));
+
+      // 2. 실제 지수 선 및 영역 렌더링
+      const pathActual = document.getElementById('pathActual');
+      const pathActualArea = document.getElementById('pathActualArea');
+      const actLineD = getSmoothSvgPath(actualPts);
+      if (pathActual) pathActual.setAttribute('d', actLineD);
+      if (pathActualArea) pathActualArea.setAttribute('d', getAreaSvgPath(actLineD, actualPts, 225));
+
+      // 3. 현재가 실시간 펄스 마커
+      const liveMarker = document.getElementById('liveActualMarker');
+      if (liveMarker && actualPts.length > 0) {
+        const lastAct = actualPts[actualPts.length - 1];
+        liveMarker.setAttribute('transform', `translate(${lastAct.x.toFixed(1)}, ${lastAct.y.toFixed(1)})`);
+        liveMarker.style.display = (lastAct.x >= 35 && lastAct.x <= 550) ? 'block' : 'none';
+      }
+
+      // 4. 시나리오 장 마감 예상 마커
+      const endMarker = document.getElementById('scenarioEndMarker');
+      if (endMarker && scenarioPts.length > 0) {
+        const lastScen = scenarioPts[scenarioPts.length - 1];
+        endMarker.setAttribute('transform', `translate(${lastScen.x.toFixed(1)}, ${lastScen.y.toFixed(1)})`);
+        endMarker.style.display = (lastScen.x >= 35 && lastScen.x <= 550) ? 'block' : 'none';
+      }
+
+      // 5. X축 시간 레이블 동적 생성 (겹치지 않게 최소 간격 유지)
+      const timeLabelsContainer = document.getElementById('chartTimeLabels');
+      if (timeLabelsContainer) {
+        let labelsHtml = '';
+        let lastRenderedX = -999;
+        currentRenderedPoints.forEach((pt) => {
+          if (pt.x >= 38 && pt.x <= 545 && (pt.x - lastRenderedX >= 52)) {
+            labelsHtml += `<text x="${pt.x.toFixed(1)}" y="250" text-anchor="middle">${pt.raw.time}</text>`;
+            lastRenderedX = pt.x;
+          }
+        });
+        timeLabelsContainer.innerHTML = labelsHtml;
+      }
+    }
+
+    function setChartInterval(interval, btn) {
+      currentChartInterval = interval;
+      document.querySelectorAll('.chart-interval-btn').forEach(b => {
+        b.className = 'chart-interval-btn px-2.5 py-1 text-[11px] font-medium text-white/70 hover:text-white rounded-lg transition';
+      });
+      if (btn) {
+        btn.className = 'chart-interval-btn px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white text-brand-txt shadow-sm transition';
+      }
+      chartZoomLevel = 1.0;
+      chartTMin = 0.0;
+      updateZoomBadge();
+      renderScenarioChart();
+    }
+
+    function adjustChartZoom(delta) {
+      let newZoom = Math.max(1.0, Math.min(4.0, +(chartZoomLevel + delta).toFixed(2)));
+      if (newZoom === chartZoomLevel) return;
+      const centerT = chartTMin + (1 / chartZoomLevel) * 0.5;
+      const newSpan = 1 / newZoom;
+      chartTMin = Math.max(0, Math.min(1 - newSpan, centerT - newSpan * 0.5));
+      chartZoomLevel = newZoom;
+      updateZoomBadge();
+      renderScenarioChart();
+    }
+
+    function resetChartZoom() {
+      chartZoomLevel = 1.0;
+      chartTMin = 0.0;
+      updateZoomBadge();
+      renderScenarioChart();
+    }
+
+    function updateZoomBadge() {
+      const badge = document.getElementById('chartZoomBadge');
+      if (badge) badge.innerText = chartZoomLevel.toFixed(1) + 'x';
+    }
+
+    function handleHoverOrTouch(clientX) {
+      if (!clientX) return;
       const svg = document.getElementById('scenarioChartSvg');
       const tooltip = document.getElementById('chartTooltip');
       const crosshair = document.getElementById('chartCrosshair');
@@ -1525,70 +1749,195 @@
       const dotAct = document.getElementById('crosshairDotActual');
       if (!svg || !tooltip || !crosshair) return;
 
-      const chartData = [
-        { x: 45, time: '09:00 (개장)', act: 2546.50, scen: 2548.00, actY: 73, scenY: 71, hasAct: true },
-        { x: 80, time: '09:30', act: 2538.00, scen: 2536.00, actY: 85, scenY: 88, hasAct: true },
-        { x: 115, time: '10:00', act: 2528.50, scen: 2525.00, actY: 99, scenY: 104, hasAct: true },
-        { x: 155, time: '10:30 (저점확인)', act: 2514.80, scen: 2515.00, actY: 119, scenY: 121, hasAct: true },
-        { x: 175, time: '10:45 (현재가)', act: 2522.10, scen: 2518.00, actY: 108, scenY: 118, hasAct: true },
-        { x: 255, time: '12:00 (예상)', act: null, scen: 2524.00, actY: null, scenY: 105, hasAct: false },
-        { x: 360, time: '13:30 (예상)', act: null, scen: 2533.00, actY: null, scenY: 92, hasAct: false },
-        { x: 465, time: '15:30 (마감예상)', act: null, scen: 2538.00, actY: null, scenY: 85, hasAct: false }
-      ];
+      const rect = svg.getBoundingClientRect();
+      const relX = ((clientX - rect.left) / rect.width) * 600;
 
-      const onMove = (e) => {
-        const rect = svg.getBoundingClientRect();
-        const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : null);
-        if (!clientX) return;
-        const relX = ((clientX - rect.left) / rect.width) * 500;
+      const pts = currentRenderedPoints;
+      if (!pts || pts.length === 0) return;
 
-        let closest = chartData[0];
-        let minDist = 9999;
-        chartData.forEach(pt => {
-          const dist = Math.abs(pt.x - relX);
+      let closest = null;
+      let minDist = 9999;
+      pts.forEach(p => {
+        if (p.x >= 35 && p.x <= 550) {
+          const dist = Math.abs(p.x - relX);
           if (dist < minDist) {
             minDist = dist;
-            closest = pt;
+            closest = p;
           }
-        });
-
-        crosshair.classList.remove('hidden');
-        line.setAttribute('x1', closest.x);
-        line.setAttribute('x2', closest.x);
-        dotScen.setAttribute('cx', closest.x);
-        dotScen.setAttribute('cy', closest.scenY);
-
-        if (closest.hasAct) {
-          dotAct.style.display = 'block';
-          dotAct.setAttribute('cx', closest.x);
-          dotAct.setAttribute('cy', closest.actY);
-          const diff = (closest.act - closest.scen).toFixed(1);
-          const diffStr = diff >= 0 ? `+${diff}` : `${diff}`;
-          tooltip.innerHTML = `
-            <span class="font-en text-white font-bold">[${closest.time}]</span>
-            <span>실제 <strong class="text-white font-en">${closest.act.toFixed(2)}p</strong> · 예상 <strong class="text-[#FFB8AD] font-en">${closest.scen.toFixed(2)}p</strong> (오차 ${diffStr}p)</span>
-          `;
-        } else {
-          dotAct.style.display = 'none';
-          tooltip.innerHTML = `
-            <span class="font-en text-white font-bold">[${closest.time}]</span>
-            <span>시나리오 예상 경로: <strong class="text-[#FFB8AD] font-en">${closest.scen.toFixed(2)}p</strong></span>
-          `;
         }
-      };
+      });
+      if (!closest) return;
 
-      const onLeave = () => {
-        crosshair.classList.add('hidden');
+      crosshair.classList.remove('hidden');
+      line.setAttribute('x1', closest.x.toFixed(1));
+      line.setAttribute('x2', closest.x.toFixed(1));
+      dotScen.setAttribute('cx', closest.x.toFixed(1));
+      dotScen.setAttribute('cy', closest.scenY.toFixed(1));
+
+      if (closest.raw.hasAct && closest.actY !== null) {
+        dotAct.style.display = 'block';
+        dotAct.setAttribute('cx', closest.x.toFixed(1));
+        dotAct.setAttribute('cy', closest.actY.toFixed(1));
+        const diff = (closest.raw.act - closest.raw.scen).toFixed(1);
+        const diffStr = diff >= 0 ? `+${diff}` : `${diff}`;
+        tooltip.innerHTML = `
+          <span class="font-en text-white font-bold">[${closest.raw.fullTime}]</span>
+          <span>실제 <strong class="text-white font-en">${closest.raw.act.toFixed(2)}p</strong> · 예상 <strong class="text-[#FFB8AD] font-en">${closest.raw.scen.toFixed(2)}p</strong> (오차 ${diffStr}p)</span>
+        `;
+      } else {
+        dotAct.style.display = 'none';
+        tooltip.innerHTML = `
+          <span class="font-en text-white font-bold">[${closest.raw.fullTime}]</span>
+          <span>시나리오 예상 경로: <strong class="text-[#FFB8AD] font-en">${closest.raw.scen.toFixed(2)}p</strong></span>
+        `;
+      }
+    }
+
+    function handleLeave() {
+      const crosshair = document.getElementById('chartCrosshair');
+      const tooltip = document.getElementById('chartTooltip');
+      if (crosshair) crosshair.classList.add('hidden');
+      if (tooltip) {
         tooltip.innerHTML = `
           <span>차트를 터치하거나 마우스를 올리면 시점별 수치가 표시됩니다.</span>
           <span class="font-en text-white font-medium">현재 2,522.10p (-1.88%)</span>
         `;
-      };
+      }
+    }
 
-      svg.addEventListener('mousemove', onMove);
-      svg.addEventListener('touchmove', onMove, { passive: true });
-      svg.addEventListener('mouseleave', onLeave);
-      svg.addEventListener('touchend', onLeave);
+    function initScenarioChart() {
+      const wrapper = document.getElementById('scenarioChartWrapper');
+      const svg = document.getElementById('scenarioChartSvg');
+      if (!wrapper || !svg) return;
+
+      renderScenarioChart();
+
+      if (chartIsInitialized) return;
+      chartIsInitialized = true;
+
+      // 1. 마우스 휠 줌 (커서 위치 중심 확대/축소)
+      wrapper.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const rect = svg.getBoundingClientRect();
+        const cursorX = e.clientX - rect.left;
+        const svgX = (cursorX / rect.width) * 600;
+        const clampedSvgX = Math.max(45, Math.min(540, svgX));
+
+        const span = 1 / chartZoomLevel;
+        const cursorT = chartTMin + ((clampedSvgX - 45) / 495) * span;
+
+        const zoomFactor = e.deltaY < 0 ? 1.18 : 0.85;
+        let newZoom = Math.max(1.0, Math.min(4.0, +(chartZoomLevel * zoomFactor).toFixed(2)));
+        if (newZoom === chartZoomLevel) return;
+
+        const newSpan = 1 / newZoom;
+        let newTMin = cursorT - ((clampedSvgX - 45) / 495) * newSpan;
+        newTMin = Math.max(0, Math.min(1 - newSpan, newTMin));
+
+        chartZoomLevel = newZoom;
+        chartTMin = newTMin;
+        updateZoomBadge();
+        renderScenarioChart();
+      }, { passive: false });
+
+      // 2. 마우스 & 터치 드래그 및 핀치 줌
+      let isDragging = false;
+      let dragStartX = 0;
+      let dragStartTMin = 0;
+      let initialPinchDist = null;
+      let initialPinchZoom = 1.0;
+
+      wrapper.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        dragStartX = e.clientX;
+        dragStartTMin = chartTMin;
+      });
+
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+
+      wrapper.addEventListener('mousemove', (e) => {
+        if (isDragging && chartZoomLevel > 1.0) {
+          const rect = svg.getBoundingClientRect();
+          const deltaX = e.clientX - dragStartX;
+          const deltaSvgX = (deltaX / rect.width) * 600;
+          const span = 1 / chartZoomLevel;
+          const deltaT = -(deltaSvgX / 495) * span;
+          chartTMin = Math.max(0, Math.min(1 - span, dragStartTMin + deltaT));
+          renderScenarioChart();
+        }
+        handleHoverOrTouch(e.clientX);
+      });
+
+      wrapper.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isDragging = true;
+          dragStartX = e.touches[0].clientX;
+          dragStartTMin = chartTMin;
+          handleHoverOrTouch(e.touches[0].clientX);
+        } else if (e.touches.length === 2) {
+          isDragging = false;
+          initialPinchDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          initialPinchZoom = chartZoomLevel;
+        }
+      }, { passive: true });
+
+      wrapper.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1 && isDragging) {
+          if (chartZoomLevel > 1.0) {
+            const rect = svg.getBoundingClientRect();
+            const deltaX = e.touches[0].clientX - dragStartX;
+            const deltaSvgX = (deltaX / rect.width) * 600;
+            const span = 1 / chartZoomLevel;
+            const deltaT = -(deltaSvgX / 495) * span;
+            chartTMin = Math.max(0, Math.min(1 - span, dragStartTMin + deltaT));
+            renderScenarioChart();
+          }
+          handleHoverOrTouch(e.touches[0].clientX);
+        } else if (e.touches.length === 2 && initialPinchDist) {
+          const dist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          const scale = dist / initialPinchDist;
+          let newZoom = Math.max(1.0, Math.min(4.0, +(initialPinchZoom * scale).toFixed(2)));
+          if (newZoom !== chartZoomLevel) {
+            const centerClientX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            const rect = svg.getBoundingClientRect();
+            const svgX = Math.max(45, Math.min(540, ((centerClientX - rect.left) / rect.width) * 600));
+            const span = 1 / chartZoomLevel;
+            const cursorT = chartTMin + ((svgX - 45) / 495) * span;
+
+            const newSpan = 1 / newZoom;
+            let newTMin = cursorT - ((svgX - 45) / 495) * newSpan;
+            newTMin = Math.max(0, Math.min(1 - newSpan, newTMin));
+
+            chartZoomLevel = newZoom;
+            chartTMin = newTMin;
+            updateZoomBadge();
+            renderScenarioChart();
+          }
+        }
+      }, { passive: true });
+
+      wrapper.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) {
+          initialPinchDist = null;
+        }
+        if (e.touches.length === 0) {
+          isDragging = false;
+          handleLeave();
+        }
+      });
+
+      wrapper.addEventListener('mouseleave', () => {
+        isDragging = false;
+        handleLeave();
+      });
     }
 
     // 6대 산업별 실전 상세 데이터
