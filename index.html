@@ -235,26 +235,74 @@
           </h2>
         </div>
 
-        <!-- 예상 수치 카드 -->
-        <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/15 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-          <div class="flex flex-col gap-0.5">
-            <span class="text-[11px] text-white/70">
-              예상 지수 범위
-            </span>
-            <span class="font-en text-2xl sm:text-[26px] font-bold tracking-tight text-white">
-              2,508 ~ 2,562
-            </span>
+        <!-- 예상 수치 카드 (모바일 최적화 2열 듀얼 글래스 카드 & 시각적 레인지 밴드 바) -->
+        <div class="bg-black/25 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/15 flex flex-col gap-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
+          <!-- 상단: 2열 나란한 핵심 수치 (모바일 가로 2열 균등 배치로 세로 낭비 원천 차단) -->
+          <div class="grid grid-cols-2 gap-3 divide-x divide-white/15">
+            
+            <!-- 좌측: 예상 지수 범위 -->
+            <div class="flex flex-col gap-1 pr-1.5 sm:pr-3">
+              <div class="flex items-center gap-1.5 text-xs text-white/75 font-medium whitespace-nowrap">
+                <i data-lucide="crosshair" class="w-3.5 h-3.5 text-white/60 shrink-0"></i>
+                <span>예상 지수 범위</span>
+              </div>
+              <div class="font-en text-[20px] sm:text-[25px] font-bold tracking-tight text-white leading-tight mt-0.5 whitespace-nowrap">
+                2,508 <span class="text-white/40 font-light text-base sm:text-lg">~</span> 2,562
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-white/55 font-en mt-0.5 whitespace-nowrap">
+                <span class="px-1.5 py-0.5 rounded-md bg-white/10 text-white/80 font-medium text-[10px]">밴드폭 54pt</span>
+                <span class="text-[10px] text-white/45 hidden sm:inline">지지 2,508선</span>
+              </div>
+            </div>
+
+            <!-- 우측: 어제 대비 예상 변동 -->
+            <div class="flex flex-col gap-1 pl-3 sm:pl-4">
+              <div class="flex items-center gap-1.5 text-xs text-white/75 font-medium whitespace-nowrap">
+                <i data-lucide="trending-down" class="w-3.5 h-3.5 text-[#FF8E7C] shrink-0"></i>
+                <span>어제 대비 예상</span>
+              </div>
+              <div class="flex items-center gap-1.5 mt-0.5 whitespace-nowrap">
+                <span class="font-en text-[20px] sm:text-[25px] font-bold tracking-tight text-[#FFB8AD] leading-tight">
+                  -3.29%p
+                </span>
+                <span class="text-[10px] sm:text-[11px] font-semibold text-[#FF8E7C] bg-[#FF8E7C]/20 border border-[#FF8E7C]/30 px-1.5 py-0.5 rounded-md">
+                  하락
+                </span>
+              </div>
+              <div class="text-[11px] text-white/55 font-en mt-0.5 whitespace-nowrap">
+                전일 대비 <span class="text-[#FFB8AD] font-semibold">-85.45pt</span>
+              </div>
+            </div>
           </div>
 
-          <div class="h-px sm:h-10 w-full sm:w-px bg-white/15"></div>
-
-          <div class="flex flex-col gap-0.5 sm:text-right">
-            <span class="text-[11px] text-white/70">
-              어제 대비 예상 변동
-            </span>
-            <span class="font-en text-xl sm:text-2xl font-bold tracking-tight text-[#FFB8AD]">
-              -3.29%p
-            </span>
+          <!-- 하단: 시각적 예상 레인지 밴드 (전일 종가 2,570.45 대비 예상 밴드 위치 시각화) -->
+          <div class="pt-3 border-t border-white/10 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between text-[10px] sm:text-[11px] font-en">
+              <span class="text-white/65 flex items-center gap-1 whitespace-nowrap">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#FF8E7C]"></span>
+                <span>최저 <strong class="text-white font-semibold">2,508</strong></span>
+              </span>
+              <span class="text-[#FFB8AD] font-medium text-[10px] sm:text-[11px] flex items-center gap-1 whitespace-nowrap">
+                <span>전일 종가 대비 갭하락</span>
+              </span>
+              <span class="text-white/65 flex items-center gap-1 whitespace-nowrap">
+                <span>최고 <strong class="text-white font-semibold">2,562</strong></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-[#F3C472]"></span>
+              </span>
+            </div>
+            
+            <!-- 시각화 트랙 바 -->
+            <div class="w-full bg-white/10 h-2.5 rounded-full p-0.5 relative overflow-hidden flex items-center">
+              <!-- 오늘 예상 밴드 (2,508 ~ 2,562) -->
+              <div class="h-full bg-gradient-to-r from-[#FF8E7C] via-[#FFB8AD] to-[#F3C472] rounded-full shadow-[0_0_8px_rgba(255,142,124,0.35)]" style="width: 78%;"></div>
+              <!-- 전일 종가 기준 마커 (2,570.45) -->
+              <div class="absolute right-[6%] top-0 bottom-0 w-1 bg-white rounded-full shadow-[0_0_6px_rgba(255,255,255,0.8)] z-10" title="전일 종가: 2,570.45"></div>
+            </div>
+            
+            <div class="flex justify-between items-center text-[9px] sm:text-[10px] text-white/50 font-en px-0.5">
+              <span>예상 변동 밴드 (78%)</span>
+              <span class="text-white/70">▲ 전일 종가 (2,570.45)</span>
+            </div>
           </div>
         </div>
 
