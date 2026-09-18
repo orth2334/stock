@@ -473,29 +473,35 @@
 
       <!-- 가로 스와이프 최근 예측 기록 (가로 카드뉴스) -->
       <section class="glass-card rounded-[22px] p-5 sm:p-6 flex flex-col gap-3.5">
-        <div class="flex items-center justify-between">
-          <div class="flex items-baseline gap-2">
-            <h3 class="text-base font-semibold text-brand-body tracking-tight">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <h3 class="text-base font-semibold text-brand-body tracking-tight whitespace-nowrap">
               최근 예측 기록
             </h3>
-            <span class="text-xs text-brand-muted font-en">적중률 <strong class="text-brand-txt font-bold">76.7%</strong></span>
+            <span class="text-[11px] font-en font-bold text-brand-up bg-brand-upBg px-1.5 py-0.5 rounded border border-[#D5EADB] whitespace-nowrap shrink-0">
+              76.7% 적중
+            </span>
           </div>
           
-          <span class="text-[11px] text-brand-muted flex items-center gap-1 select-none font-medium">
+          <span class="text-[10px] sm:text-[11px] text-brand-muted flex items-center gap-0.5 select-none font-medium shrink-0 whitespace-nowrap">
             <i data-lucide="chevrons-left-right" class="w-3.5 h-3.5 text-brand-muted"></i>
-            <span>좌우로 끌어서 넘기기</span>
+            <span>밀어서 보기</span>
           </span>
         </div>
 
-        <!-- 30일 누적 성과 서브 바 -->
-        <div class="flex items-center justify-between text-[11px] sm:text-xs py-2 px-3.5 rounded-xl bg-white/55 border border-[#D5E1D4] text-brand-muted">
-          <span>최근 30일 누적 성과</span>
-          <div class="flex items-center gap-2.5 sm:gap-3 font-en">
-            <span>적중 <strong class="text-brand-txt font-semibold">23회</strong></span>
-            <span class="text-[#CBD7CB]">·</span>
-            <span>불일치 <strong class="text-brand-danger font-semibold">7회</strong></span>
-            <span class="text-[#CBD7CB]">·</span>
-            <span>평균 오차 <strong class="text-brand-body font-semibold">±0.42%</strong></span>
+        <!-- 30일 누적 성과 3분할 통계 그리드 (어떤 모바일 해상도에서도 줄바꿈/깨짐 없는 3열 카드) -->
+        <div class="grid grid-cols-3 gap-1.5 py-2.5 px-3 rounded-xl bg-white/55 border border-[#D5E1D4] text-center shadow-[0_2px_8px_rgba(35,78,53,0.03)]">
+          <div class="flex flex-col items-center justify-center">
+            <span class="text-[10px] sm:text-[11px] text-brand-muted whitespace-nowrap">30일 적중</span>
+            <span class="font-en text-xs sm:text-sm font-bold text-brand-up whitespace-nowrap">23회</span>
+          </div>
+          <div class="flex flex-col items-center justify-center border-x border-[#D5E1D4]/80">
+            <span class="text-[10px] sm:text-[11px] text-brand-muted whitespace-nowrap">불일치</span>
+            <span class="font-en text-xs sm:text-sm font-bold text-brand-danger whitespace-nowrap">7회</span>
+          </div>
+          <div class="flex flex-col items-center justify-center">
+            <span class="text-[10px] sm:text-[11px] text-brand-muted whitespace-nowrap">평균 오차</span>
+            <span class="font-en text-xs sm:text-sm font-bold text-brand-body whitespace-nowrap">±0.42%</span>
           </div>
         </div>
 
