@@ -291,14 +291,31 @@
             <button type="button" onclick="setChartInterval('all', this)" class="chart-interval-btn py-1.5 text-xs font-medium text-white/70 hover:text-white rounded-lg transition text-center">당일전체</button>
           </div>
 
-          <!-- 인터랙티브 상태 바 / 툴팁 -->
-          <div id="chartTooltip" class="flex items-center justify-between text-[11px] text-white/80 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5 transition-all">
-            <span>차트를 터치하거나 마우스를 올리면 시점별 수치가 표시됩니다.</span>
-            <span class="font-en text-white font-medium">현재 2,522.10p (-1.88%)</span>
-          </div>
-
           <!-- 2선 주식 SVG 그래프 컨테이너 (여백 없는 반응형 캔버스) -->
-          <div id="scenarioChartWrapper" class="relative w-full overflow-hidden select-none touch-none cursor-grab active:cursor-grabbing">
+          <div id="scenarioChartWrapper" class="relative w-full overflow-visible select-none touch-none cursor-grab active:cursor-grabbing">
+            
+            <!-- 그래프 위 실시간 플로팅 툴팁 (마우스 호버/터치 시 포인트 위에 직접 팝오버) -->
+            <div id="floatingChartTooltip" class="absolute pointer-events-none hidden z-30 -translate-x-1/2 -translate-y-full mb-3 bg-[#13241A]/95 backdrop-blur-md px-3 py-2 rounded-xl border border-white/20 shadow-[0_8px_24px_rgba(0,0,0,0.5)] text-xs text-white flex flex-col gap-1 whitespace-nowrap transition-transform duration-75">
+              <div class="flex items-center justify-between gap-3 text-[11px] border-b border-white/10 pb-1">
+                <span id="tooltipTime" class="font-en font-bold text-white tracking-tight">10:30</span>
+                <span id="tooltipDiff" class="font-en font-bold text-[#A7F3D0]">+0.20p</span>
+              </div>
+              <div class="flex items-center gap-3 text-xs font-en pt-0.5">
+                <div class="flex items-center gap-1.5" id="tooltipActualRow">
+                  <span class="w-2 h-2 rounded-full bg-white inline-block shadow-sm"></span>
+                  <span class="text-white/70 text-[11px]">실제</span>
+                  <span class="text-white font-bold" id="tooltipActual">2,514.80p</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-[#FFB8AD] inline-block shadow-sm"></span>
+                  <span class="text-white/70 text-[11px]">예상</span>
+                  <span class="text-[#FFB8AD] font-bold" id="tooltipScenario">2,515.00p</span>
+                </div>
+              </div>
+              <!-- 하단 꼬리표 (Arrow) -->
+              <div class="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2.5 h-2.5 bg-[#13241A] border-r border-b border-white/20 rotate-45"></div>
+            </div>
+
             <svg id="scenarioChartSvg" viewBox="0 0 600 240" class="w-full h-auto select-none overflow-visible block" style="pointer-events: auto;">
               <defs>
                 <linearGradient id="gradActual" x1="0" y1="0" x2="0" y2="1">
@@ -1727,12 +1744,18 @@
     function handleHoverOrTouch(clientX) {
       if (!clientX) return;
       const svg = document.getElementById('scenarioChartSvg');
-      const tooltip = document.getElementById('chartTooltip');
+      const wrapper = document.getElementById('scenarioChartWrapper');
       const crosshair = document.getElementById('chartCrosshair');
       const line = document.getElementById('crosshairLine');
       const dotScen = document.getElementById('crosshairDotScenario');
       const dotAct = document.getElementById('crosshairDotActual');
-      if (!svg || !tooltip || !crosshair) return;
+      const floatingTooltip = document.getElementById('floatingChartTooltip');
+      const tooltipTime = document.getElementById('tooltipTime');
+      const tooltipDiff = document.getElementById('tooltipDiff');
+      const tooltipActual = document.getElementById('tooltipActual');
+      const tooltipActualRow = document.getElementById('tooltipActualRow');
+      const tooltipScenario = document.getElementById('tooltipScenario');
+      if (!svg || !crosshair || !wrapper) return;
 
       const rect = svg.getBoundingClientRect();
       const relX = ((clientX - rect.left) / rect.width) * 600;
@@ -1763,31 +1786,48 @@
         dotAct.style.display = 'block';
         dotAct.setAttribute('cx', closest.x.toFixed(1));
         dotAct.setAttribute('cy', closest.actY.toFixed(1));
-        const diff = (closest.raw.act - closest.raw.scen).toFixed(1);
-        const diffStr = diff >= 0 ? `+${diff}` : `${diff}`;
-        tooltip.innerHTML = `
-          <span class="font-en text-white font-bold">[${closest.raw.fullTime}]</span>
-          <span>실제 <strong class="text-white font-en">${closest.raw.act.toFixed(2)}p</strong> · 예상 <strong class="text-[#FFB8AD] font-en">${closest.raw.scen.toFixed(2)}p</strong> (오차 ${diffStr}p)</span>
-        `;
       } else {
         dotAct.style.display = 'none';
-        tooltip.innerHTML = `
-          <span class="font-en text-white font-bold">[${closest.raw.fullTime}]</span>
-          <span>시나리오 예상 경로: <strong class="text-[#FFB8AD] font-en">${closest.raw.scen.toFixed(2)}p</strong></span>
-        `;
+      }
+
+      if (floatingTooltip) {
+        floatingTooltip.classList.remove('hidden');
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const pointPixelX = (closest.x / 600) * wrapperRect.width;
+        const targetY = (closest.raw.hasAct && closest.actY !== null) ? closest.actY : closest.scenY;
+        const pointPixelY = (targetY / 240) * wrapperRect.height;
+
+        const clampedX = Math.max(75, Math.min(wrapperRect.width - 75, pointPixelX));
+        floatingTooltip.style.left = `${clampedX}px`;
+        floatingTooltip.style.top = `${pointPixelY}px`;
+
+        if (tooltipTime) tooltipTime.innerText = closest.raw.fullTime;
+        if (tooltipScenario) tooltipScenario.innerText = `${closest.raw.scen.toFixed(2)}p`;
+
+        if (closest.raw.hasAct && closest.actY !== null) {
+          if (tooltipActualRow) tooltipActualRow.style.display = 'flex';
+          if (tooltipActual) tooltipActual.innerText = `${closest.raw.act.toFixed(2)}p`;
+          const diff = +(closest.raw.act - closest.raw.scen).toFixed(2);
+          const diffStr = diff >= 0 ? `+${diff.toFixed(2)}p` : `${diff.toFixed(2)}p`;
+          if (tooltipDiff) {
+            tooltipDiff.innerText = diffStr;
+            tooltipDiff.className = diff >= 0 ? 'font-en font-bold text-[#A7F3D0]' : 'font-en font-bold text-[#FFB8AD]';
+          }
+        } else {
+          if (tooltipActualRow) tooltipActualRow.style.display = 'none';
+          if (tooltipDiff) {
+            tooltipDiff.innerText = '시나리오 예상';
+            tooltipDiff.className = 'font-en text-[10px] text-white/60 font-medium';
+          }
+        }
       }
     }
 
     function handleLeave() {
       const crosshair = document.getElementById('chartCrosshair');
-      const tooltip = document.getElementById('chartTooltip');
+      const floatingTooltip = document.getElementById('floatingChartTooltip');
       if (crosshair) crosshair.classList.add('hidden');
-      if (tooltip) {
-        tooltip.innerHTML = `
-          <span>차트를 터치하거나 마우스를 올리면 시점별 수치가 표시됩니다.</span>
-          <span class="font-en text-white font-medium">현재 2,522.10p (-1.88%)</span>
-        `;
-      }
+      if (floatingTooltip) floatingTooltip.classList.add('hidden');
     }
 
     function initScenarioChart() {
