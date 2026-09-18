@@ -893,7 +893,7 @@
           <div onclick="openSectorDetail('auto')" class="glass-card card-hover rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 cursor-pointer group">
             <div class="flex items-start justify-between">
               <div class="flex items-center gap-2.5">
-                <span class="w-8 h-8 rounded-xl bg-[#F4F7F3] border border-[#D8E3D7] flex items-center justify-center text-brand-body shrink-0">
+                <span class="w-8 h-8 rounded-xl bg-[#FBF2F0] border border-[#F2D7D3] flex items-center justify-center text-brand-danger shrink-0">
                   <i data-lucide="truck" class="w-4 h-4"></i>
                 </span>
                 <div>
@@ -904,7 +904,7 @@
                 </div>
               </div>
               <div class="flex items-center gap-2">
-                <span id="pct-auto" class="font-en text-base font-bold text-brand-body">-0.4%</span>
+                <span id="pct-auto" class="font-en text-base font-bold text-brand-danger">-0.4%</span>
                 <i data-lucide="chevron-right" class="w-4 h-4 text-brand-muted/70 group-hover:translate-x-0.5 transition"></i>
               </div>
             </div>
@@ -1092,13 +1092,13 @@
         <div class="grid grid-cols-3 gap-2 pt-1">
           <div class="bg-white/10 rounded-xl p-2.5 flex flex-col gap-0.5 text-center">
             <span class="text-[10px] text-white/70">CBOE VIX</span>
-            <span class="font-en text-sm font-bold text-[#FFB8AD]">19.85</span>
-            <span class="font-en text-[10px] text-[#FFB8AD]">+18.2%</span>
+            <span class="font-en text-sm font-bold text-white">19.85</span>
+            <span class="font-en text-[10px] text-[#A7F3D0]">+18.2%</span>
           </div>
           <div class="bg-white/10 rounded-xl p-2.5 flex flex-col gap-0.5 text-center">
             <span class="text-[10px] text-white/70">VKOSPI</span>
-            <span class="font-en text-sm font-bold text-[#FFB8AD]">18.40</span>
-            <span class="font-en text-[10px] text-[#FFB8AD]">+12.4%</span>
+            <span class="font-en text-sm font-bold text-white">18.40</span>
+            <span class="font-en text-[10px] text-[#A7F3D0]">+12.4%</span>
           </div>
           <div class="bg-white/10 rounded-xl p-2.5 flex flex-col gap-0.5 text-center">
             <span class="text-[10px] text-white/70">코스피 ADR</span>
@@ -1184,7 +1184,7 @@
               <span class="text-xs font-semibold text-brand-body">원·달러 환율</span>
               <span class="font-en text-xs text-brand-muted">1,345.50원</span>
             </div>
-            <span class="font-en text-xs font-bold text-brand-danger">+4.20</span>
+            <span class="font-en text-xs font-bold text-brand-up">+4.20</span>
           </div>
 
           <!-- 달러 인덱스 -->
@@ -1193,7 +1193,7 @@
               <span class="text-xs font-semibold text-brand-body">달러 인덱스 (DXY)</span>
               <span class="font-en text-xs text-brand-muted">101.45 pt</span>
             </div>
-            <span class="font-en text-xs font-bold text-brand-danger">+0.32%</span>
+            <span class="font-en text-xs font-bold text-brand-up">+0.32%</span>
           </div>
 
           <!-- 유가 -->
@@ -1202,7 +1202,7 @@
               <span class="text-xs font-semibold text-brand-body">WTI 원유</span>
               <span class="font-en text-xs text-brand-muted">$70.25 / 배럴</span>
             </div>
-            <span class="font-en text-xs font-bold text-brand-body">+1.15%</span>
+            <span class="font-en text-xs font-bold text-brand-up">+1.15%</span>
           </div>
 
           <!-- 국제 금 -->
@@ -1220,7 +1220,7 @@
               <span class="text-xs font-semibold text-brand-body">미 국채 10년물</span>
               <span class="font-en text-xs text-brand-muted">3.65%</span>
             </div>
-            <span class="font-en text-xs font-bold text-brand-up">-0.03%p</span>
+            <span class="font-en text-xs font-bold text-brand-danger">-0.03%p</span>
           </div>
 
           <!-- 미 국채 2년물 -->
@@ -1229,7 +1229,7 @@
               <span class="text-xs font-semibold text-brand-body">미 국채 2년물</span>
               <span class="font-en text-xs text-brand-muted">3.58%</span>
             </div>
-            <span class="font-en text-xs font-bold text-brand-up">-0.05%p</span>
+            <span class="font-en text-xs font-bold text-brand-danger">-0.05%p</span>
           </div>
         </div>
       </section>
@@ -1612,7 +1612,7 @@
         drivers: [
           { label: '필라델피아 반도체 (SOX)', val: '4,892.1 (-5.90%)', class: 'text-brand-danger' },
           { label: '엔비디아 (NVDA)', val: '$106.20 (-9.53%)', class: 'text-brand-danger' },
-          { label: 'DRAM DXI 고정지수', val: '27,850 (+0.4%)', class: 'text-brand-body' }
+          { label: 'DRAM DXI 고정지수', val: '27,850 (+0.4%)', class: 'text-brand-up' }
         ],
         checkpoints: [
           '개장 직후 외국인의 삼성전자·SK하이닉스 순매도 규모 확인',
@@ -1664,7 +1664,7 @@
           { name: '개인', amount: '-1,000억', class: 'text-brand-danger' }
         ],
         drivers: [
-          { label: '미 10년물 국채 금리', val: '3.65% (-0.03%p)', class: 'text-brand-up' },
+          { label: '미 10년물 국채 금리', val: '3.65% (-0.03%p)', class: 'text-brand-danger' },
           { label: '나스닥 바이오 (NBI)', val: '4,650.2 (+0.75%)', class: 'text-brand-up' },
           { label: '하반기 FDA 승인', val: '신약 일정 집중', class: 'text-brand-up' }
         ],
@@ -1691,7 +1691,7 @@
           { name: '개인', amount: '-1,340억', class: 'text-brand-danger' }
         ],
         drivers: [
-          { label: '국고채 3년물 금리', val: '2.84% (-0.01%p)', class: 'text-brand-body' },
+          { label: '국고채 3년물 금리', val: '2.84% (-0.01%p)', class: 'text-brand-danger' },
           { label: '평균 배당수익률', val: '5.6% 수준', class: 'text-brand-up' },
           { label: '업종 평균 PBR', val: '0.48배 (저평가)', class: 'text-brand-up' }
         ],
@@ -1720,7 +1720,7 @@
         drivers: [
           { label: '클락슨 신조선가지수', val: '189.2pt (신고가)', class: 'text-brand-up' },
           { label: '방산 수주 잔고', val: '역대 최대치 경신', class: 'text-brand-up' },
-          { label: 'WTI 유가', val: '$70.25 (+1.15%)', class: 'text-brand-body' }
+          { label: 'WTI 유가', val: '$70.25 (+1.15%)', class: 'text-brand-up' }
         ],
         checkpoints: [
           '지수 하락과 무관한 수급 쏠림 지속도 체크',
@@ -1731,12 +1731,12 @@
       auto: {
         name: '자동차 · 부품',
         pct: '-0.4%',
-        pctClass: 'text-brand-body',
+        pctClass: 'text-brand-danger',
         weight: '시총 비중 8.1%',
         desc: '원·달러 환율 1,345원 돌파에 따른 수출 마진 개선과 글로벌 경기 둔화 우려가 팽팽히 맞서는 보합세입니다.',
         stocks: [
-          { name: '현대차', code: '005380', price: '238,500원', change: '-0.4%', changeClass: 'text-brand-body', note: '인도법인 IPO 기대' },
-          { name: '기아', code: '000270', price: '102,400원', change: '-0.2%', changeClass: 'text-brand-body', note: '하이브리드 판매 호조' },
+          { name: '현대차', code: '005380', price: '238,500원', change: '-0.4%', changeClass: 'text-brand-danger', note: '인도법인 IPO 기대' },
+          { name: '기아', code: '000270', price: '102,400원', change: '-0.2%', changeClass: 'text-brand-danger', note: '하이브리드 판매 호조' },
           { name: '현대모비스', code: '012330', price: '215,000원', change: '-0.7%', changeClass: 'text-brand-danger', note: '외인 소폭 매도' }
         ],
         flows: [
@@ -1881,12 +1881,24 @@
 
       const data = sectorData[period];
       if (data) {
-        document.getElementById('pct-semi').innerText = data.semi;
-        document.getElementById('pct-battery').innerText = data.battery;
-        document.getElementById('pct-bio').innerText = data.bio;
-        document.getElementById('pct-finance').innerText = data.finance;
-        document.getElementById('pct-defense').innerText = data.defense;
-        document.getElementById('pct-auto').innerText = data.auto;
+        const keys = ['semi', 'battery', 'bio', 'finance', 'defense', 'auto'];
+        keys.forEach(k => {
+          const el = document.getElementById('pct-' + k);
+          if (el && data[k]) {
+            el.innerText = data[k];
+            const isPos = data[k].startsWith('+');
+            el.className = isPos ? 'font-en text-base font-bold text-brand-up' : 'font-en text-base font-bold text-brand-danger';
+            const card = el.closest('.glass-card');
+            if (card) {
+              const iconBox = card.querySelector('span.w-8.h-8');
+              if (iconBox) {
+                iconBox.className = isPos
+                  ? 'w-8 h-8 rounded-xl bg-brand-upBg border border-[#D5EADB] flex items-center justify-center text-brand-up shrink-0'
+                  : 'w-8 h-8 rounded-xl bg-[#FBF2F0] border border-[#F2D7D3] flex items-center justify-center text-brand-danger shrink-0';
+              }
+            }
+          }
+        });
       }
     }
 
